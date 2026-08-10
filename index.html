@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>페어 서사 스튜디오</title>
+    <title>페어 서사 스튜디오 (최종판)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 이미지 캡처를 위한 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -32,10 +32,10 @@
         .btn-outline:hover { background: #f4f4f5; color: #18181b; border-color: #a1a1aa; }
     </style>
 </head>
-<body class="bg-zinc-100 flex h-screen w-screen">
+<body class="bg-zinc-100 flex h-screen w-screen overflow-hidden relative">
 
     <!-- 왼쪽: 빌더 패널 -->
-    <aside class="w-[500px] h-full bg-white border-r border-zinc-200 flex flex-col shadow-xl z-10 shrink-0">
+    <aside id="editor-panel" class="w-full md:w-[500px] h-full bg-white border-r border-zinc-200 flex flex-col shadow-xl z-10 shrink-0">
         <div class="p-5 border-b border-zinc-200 bg-zinc-900 text-white flex flex-col gap-3">
             <div class="flex justify-between items-center">
                 <h1 class="text-lg font-black tracking-wide">✨ 페어 서사 스튜디오</h1>
@@ -53,8 +53,8 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6" id="form-container">
-            <p class="text-xs text-zinc-400 mb-4 font-semibold tracking-tight">※ 입력 시 우측 화면에 실시간으로 반영됩니다.</p>
+        <div class="flex-1 overflow-y-auto p-6 pb-32 md:pb-6" id="form-container">
+            <p class="text-xs text-zinc-400 mb-4 font-semibold tracking-tight">※ 입력 시 우측 화면에 실시간으로 부드럽게 반영됩니다.</p>
 
             <!-- 1. 메인 설정 -->
             <div class="section-title mt-0">1. 테마 & 메인 헤더</div>
@@ -62,7 +62,7 @@
                 <div class="flex-1 input-group mb-0"><label>캐릭터 1 컬러</label><input type="color" id="c1_color" value="#52525b" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
                 <div class="flex-1 input-group mb-0"><label>캐릭터 2 컬러</label><input type="color" id="c2_color" value="#a1a1aa" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
             </div>
-            <div class="input-group"><label>소제목</label><input type="text" id="h_sub" value="여기에 소제목 or 캐치 프레이즈를 입력하세요"></div>
+            <div class="input-group"><label>소제목</label><input type="text" id="h_sub" value="여기에 소제목을 입력하세요"></div>
             <div class="input-group"><label>제목 (일반 텍스트)</label><input type="text" id="h_t1" value="메인 제목을"></div>
             <div class="input-group"><label>제목 (그라데이션 강조)</label><input type="text" id="h_t2" value="여기에"></div>
             <div class="input-group"><label>제목 (끝맺음)</label><input type="text" id="h_t3" value=" 입력하세요."></div>
@@ -75,7 +75,7 @@
             <div class="input-group">
                 <label>이미지 URL (또는 파일 첨부)</label>
                 <div class="flex gap-2">
-                    <input type="text" id="c1_img" value="" placeholder="이미지 URL 입력" class="flex-1">
+                    <input type="text" id="c1_img" value="" placeholder="이미지 URL 입력" class="flex-1" oninput="this.removeAttribute('data-base64'); debouncedUpdate();">
                     <input type="file" id="c1_file" accept="image/*" class="hidden" onchange="handleFileUpload(event, 'c1_img')">
                     <button type="button" onclick="document.getElementById('c1_file').click()" class="btn-outline shrink-0">파일 첨부</button>
                 </div>
@@ -94,7 +94,7 @@
             <div class="input-group">
                 <label>이미지 URL (또는 파일 첨부)</label>
                 <div class="flex gap-2">
-                    <input type="text" id="c2_img" value="" placeholder="이미지 URL 입력" class="flex-1">
+                    <input type="text" id="c2_img" value="" placeholder="이미지 URL 입력" class="flex-1" oninput="this.removeAttribute('data-base64'); debouncedUpdate();">
                     <input type="file" id="c2_file" accept="image/*" class="hidden" onchange="handleFileUpload(event, 'c2_img')">
                     <button type="button" onclick="document.getElementById('c2_file').click()" class="btn-outline shrink-0">파일 첨부</button>
                 </div>
@@ -166,11 +166,17 @@
     </aside>
 
     <!-- 오른쪽: 실시간 미리보기 -->
-    <main class="flex-1 h-full bg-zinc-200 relative p-4">
+    <main id="preview-panel" class="absolute inset-0 md:relative md:inset-auto flex-1 h-full bg-zinc-200 p-4 z-20 translate-x-full md:translate-x-0 transition-transform duration-300">
         <div class="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-zinc-300 bg-white relative">
             <iframe id="preview" class="w-full h-full border-none absolute inset-0"></iframe>
         </div>
     </main>
+
+    <!-- 모바일 전용 토글 버튼 -->
+    <button id="mobile-toggle" class="md:hidden fixed bottom-6 right-6 bg-zinc-900 text-white px-5 py-3 rounded-full shadow-2xl font-bold z-50 flex items-center gap-2 transition-transform" onclick="toggleMobile()">
+        <span id="mobile-toggle-icon">👀</span>
+        <span id="mobile-toggle-text">미리보기</span>
+    </button>
 
     <!-- 알림창 -->
     <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-zinc-900 text-white px-6 py-3 rounded-full shadow-2xl font-bold transition-all duration-300 opacity-0 pointer-events-none z-50">
@@ -178,6 +184,27 @@
     </div>
 
     <script>
+        // --- 모바일 토글 기능 ---
+        let isPreviewOpen = false;
+        function toggleMobile() {
+            const preview = document.getElementById('preview-panel');
+            const icon = document.getElementById('mobile-toggle-icon');
+            const text = document.getElementById('mobile-toggle-text');
+            
+            isPreviewOpen = !isPreviewOpen;
+            if (isPreviewOpen) {
+                preview.classList.remove('translate-x-full');
+                preview.classList.add('translate-x-0');
+                icon.innerText = '✏️';
+                text.innerText = '편집하기';
+            } else {
+                preview.classList.add('translate-x-full');
+                preview.classList.remove('translate-x-0');
+                icon.innerText = '👀';
+                text.innerText = '미리보기';
+            }
+        }
+
         // --- 데이터 상태 관리 ---
         let calls = [
             { direction: "2to1", text: "호칭 1", type: "normal", desc: "" },
@@ -199,14 +226,19 @@
         ];
 
         let galleries = [
-            { img: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
-            { img: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
-            { img: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
-            { img: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." }
+            { img: "", fileName: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
+            { img: "", fileName: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
+            { img: "", fileName: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
+            { img: "", fileName: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." }
         ];
 
         // --- 유틸리티 ---
-        function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+        function val(id) { 
+            const el = document.getElementById(id); 
+            if (!el) return '';
+            // data-base64 속성이 있으면(파일 첨부 시) 그걸 우선 반환
+            return el.dataset.base64 || el.value; 
+        }
         function htmlVal(id) { return val(id).replace(/\n/g, '<br>'); }
         function hexToRgb(hex) {
             hex = hex.replace('#', '');
@@ -221,15 +253,16 @@
             return htmlText.replace(/\*(.*?)\*/g, `<span style="color: ${color}; font-weight: 900;">$1</span>`);
         }
 
-        // --- 파일 업로드 처리 ---
+        // --- 파일 업로드 처리 (Base64 숨김 처리) ---
         function handleFileUpload(event, targetId) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const targetInput = document.getElementById(targetId);
-                    targetInput.value = e.target.result; // Base64 데이터 삽입
-                    if (!isInitialLoad) debouncedUpdate(); // 즉시 업데이트
+                    targetInput.dataset.base64 = e.target.result; // 실제 데이터는 숨겨둠
+                    targetInput.value = `[첨부됨] ${file.name}`; // 화면엔 파일명만 표시
+                    if (!isInitialLoad) debouncedUpdate();
                 };
                 reader.readAsDataURL(file);
             }
@@ -240,7 +273,10 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    if(type === 'gallery') galleries[idx].img = e.target.result;
+                    if(type === 'gallery') {
+                        galleries[idx].img = e.target.result; // 실제 데이터
+                        galleries[idx].fileName = `[첨부됨] ${file.name}`; // 화면 표시용
+                    }
                     renderGalleries();
                     if (!isInitialLoad) debouncedUpdate();
                 };
@@ -324,6 +360,7 @@
             const container = document.getElementById('galleries-container');
             container.innerHTML = '';
             galleries.forEach((g, i) => {
+                let displayVal = g.fileName || g.img; // 파일명이 있으면 파일명 표시, 없으면 URL 표시
                 container.innerHTML += `
                     <div class="item-box border-l-4 border-zinc-400">
                         <button type="button" class="delete-btn" onclick="removeGallery(${i})">삭제</button>
@@ -331,7 +368,7 @@
                         <div class="input-group">
                             <label>이미지 URL (또는 파일 첨부)</label>
                             <div class="flex gap-2">
-                                <input type="text" value="${escapeHTML(g.img)}" oninput="galleries[${i}].img=this.value; debouncedUpdate()" placeholder="이미지 URL 입력" class="flex-1">
+                                <input type="text" value="${escapeHTML(displayVal)}" oninput="galleries[${i}].img=this.value; galleries[${i}].fileName=''; debouncedUpdate()" placeholder="이미지 URL 입력" class="flex-1">
                                 <input type="file" id="g_file_${i}" accept="image/*" class="hidden" onchange="handleDynamicFile(event, 'gallery', ${i})">
                                 <button type="button" onclick="document.getElementById('g_file_${i}').click()" class="btn-outline shrink-0">파일 첨부</button>
                             </div>
@@ -350,7 +387,7 @@
         function removeChat(idx) { chats.splice(idx, 1); renderChats(); }
         function addPhase() { phases.push({ color: "#d4d4d8", textColor: "#52525b", sub: "Phase 새 소제목", title: "새 제목", desc: "새 내용", progressText: "" }); renderPhases(); }
         function removePhase(idx) { phases.splice(idx, 1); renderPhases(); }
-        function addGallery() { galleries.push({ img: "", tag: "#새_태그", title: "새 이미지", desc: "설명" }); renderGalleries(); }
+        function addGallery() { galleries.push({ img: "", fileName: "", tag: "#새_태그", title: "새 이미지", desc: "설명" }); renderGalleries(); }
         function removeGallery(idx) { galleries.splice(idx, 1); renderGalleries(); }
 
         // --- HTML 조각 생성 함수들 ---
@@ -768,8 +805,7 @@
                 allowTaint: false,
                 backgroundColor: '#f4f4f5',
                 windowWidth: docEl.scrollWidth,
-                windowHeight: docEl.scrollHeight,
-                window: iframe.contentWindow // iframe 렌더링 안정성 향상
+                windowHeight: docEl.scrollHeight
             }).then(canvas => {
                 target.style.overflow = originalBodyOverflow; // 스크롤바 원상복구
                 docEl.style.overflow = originalDocOverflow;
