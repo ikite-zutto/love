@@ -1,0 +1,817 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>페어 서사 스튜디오</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 이미지 캡처를 위한 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- 세련된 UI를 위한 Pretendard 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* UI 패널 무채색 & 모던 스타일링 */
+        body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; overflow: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f4f4f5; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+        
+        .section-title { font-weight: 800; font-size: 1.05rem; color: #18181b; margin: 2.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 1px solid #e4e4e7; display: flex; justify-content: space-between; align-items: center; letter-spacing: -0.02em; }
+        .input-group { margin-bottom: 1.2rem; }
+        .input-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #52525b; margin-bottom: 0.4rem; letter-spacing: -0.01em; }
+        .input-group input[type="text"], .input-group textarea, .input-group select { width: 100%; padding: 0.7rem; border: 1px solid #e4e4e7; border-radius: 0.4rem; font-size: 0.85rem; background: #fafafa; color: #27272a; transition: all 0.2s ease; outline: none; }
+        .input-group input[type="text"]:focus, .input-group textarea:focus, .input-group select:focus { border-color: #3f3f46; background: #fff; box-shadow: 0 0 0 2px rgba(63, 63, 70, 0.1); }
+        .input-group textarea { resize: vertical; min-height: 80px; }
+        
+        .item-box { background: #fff; border: 1px solid #e4e4e7; padding: 1.2rem; border-radius: 0.5rem; margin-bottom: 1rem; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .delete-btn { position: absolute; top: 0.7rem; right: 0.7rem; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7; border-radius: 0.3rem; padding: 0.3rem 0.6rem; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .delete-btn:hover { background: #e4e4e7; color: #18181b; }
+        
+        .btn-outline { background: #fff; border: 1px solid #d4d4d8; color: #3f3f46; padding: 0.3rem 0.6rem; border-radius: 0.3rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-outline:hover { background: #f4f4f5; color: #18181b; border-color: #a1a1aa; }
+    </style>
+</head>
+<body class="bg-zinc-100 flex h-screen w-screen">
+
+    <!-- 왼쪽: 빌더 패널 -->
+    <aside class="w-[500px] h-full bg-white border-r border-zinc-200 flex flex-col shadow-xl z-10 shrink-0">
+        <div class="p-5 border-b border-zinc-200 bg-zinc-900 text-white flex flex-col gap-3">
+            <div class="flex justify-between items-center">
+                <h1 class="text-lg font-black tracking-wide">✨ 페어 서사 스튜디오</h1>
+                <button onclick="copyHTML()" class="bg-zinc-100 hover:bg-white text-zinc-900 text-xs font-bold py-2 px-3 rounded-lg transition-colors shadow-sm">
+                    코드 복사
+                </button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="saveAsHTML()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow-sm">
+                    💾 HTML 저장
+                </button>
+                <button id="btn-save-img" onclick="saveAsImage()" class="flex-1 bg-zinc-600 hover:bg-zinc-500 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow-sm">
+                    📸 이미지 저장
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6" id="form-container">
+            <p class="text-xs text-zinc-400 mb-4 font-semibold tracking-tight">※ 입력 시 우측 화면에 실시간으로 반영됩니다.</p>
+
+            <!-- 1. 메인 설정 -->
+            <div class="section-title mt-0">1. 테마 & 메인 헤더</div>
+            <div class="flex gap-4 mb-4">
+                <div class="flex-1 input-group mb-0"><label>캐릭터 1 컬러</label><input type="color" id="c1_color" value="#52525b" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+                <div class="flex-1 input-group mb-0"><label>캐릭터 2 컬러</label><input type="color" id="c2_color" value="#a1a1aa" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+            </div>
+            <div class="input-group"><label>소제목</label><input type="text" id="h_sub" value="여기에 소제목 or 캐치 프레이즈를 입력하세요"></div>
+            <div class="input-group"><label>제목 (일반 텍스트)</label><input type="text" id="h_t1" value="메인 제목을"></div>
+            <div class="input-group"><label>제목 (그라데이션 강조)</label><input type="text" id="h_t2" value="여기에"></div>
+            <div class="input-group"><label>제목 (끝맺음)</label><input type="text" id="h_t3" value=" 입력하세요."></div>
+            <div class="input-group"><label>메인 설명</label><textarea id="h_desc">여기에 메인 설명을 입력하세요.&#13;&#10;두 줄 이상 입력할 수 있습니다.</textarea></div>
+
+            <!-- 2. 캐릭터 1 -->
+            <div class="section-title">2. 캐릭터 1 (왼쪽)</div>
+            <div class="input-group"><label>이름</label><input type="text" id="c1_name" value="캐릭터 1"></div>
+            <div class="input-group"><label>직함</label><input type="text" id="c1_sub" value="직함 또는 이명"></div>
+            <div class="input-group">
+                <label>이미지 URL (또는 파일 첨부)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="c1_img" value="" placeholder="이미지 URL 입력" class="flex-1">
+                    <input type="file" id="c1_file" accept="image/*" class="hidden" onchange="handleFileUpload(event, 'c1_img')">
+                    <button type="button" onclick="document.getElementById('c1_file').click()" class="btn-outline shrink-0">파일 첨부</button>
+                </div>
+            </div>
+            <div class="flex gap-2 mb-4">
+                <div class="flex-1 input-group mb-0"><label>해시태그</label><input type="text" id="c1_tags" value="#해시태그1 #해시태그2"></div>
+                <div class="w-24 input-group mb-0"><label>해시태그 색상</label><input type="color" id="c1_tags_color" value="#d4d4d8" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+            </div>
+            <div class="input-group"><label>설명</label><textarea id="c1_desc">여기에 캐릭터 1에 대한 설명을 입력하세요.</textarea></div>
+            <div class="input-group"><label>말풍선 대사</label><input type="text" id="c1_quote" value="여기에 캐릭터 1의 대사를 입력하세요."></div>
+
+            <!-- 3. 캐릭터 2 -->
+            <div class="section-title">3. 캐릭터 2 (오른쪽)</div>
+            <div class="input-group"><label>이름</label><input type="text" id="c2_name" value="캐릭터 2"></div>
+            <div class="input-group"><label>직함</label><input type="text" id="c2_sub" value="직함 또는 이명"></div>
+            <div class="input-group">
+                <label>이미지 URL (또는 파일 첨부)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="c2_img" value="" placeholder="이미지 URL 입력" class="flex-1">
+                    <input type="file" id="c2_file" accept="image/*" class="hidden" onchange="handleFileUpload(event, 'c2_img')">
+                    <button type="button" onclick="document.getElementById('c2_file').click()" class="btn-outline shrink-0">파일 첨부</button>
+                </div>
+            </div>
+            <div class="flex gap-2 mb-4">
+                <div class="flex-1 input-group mb-0"><label>해시태그</label><input type="text" id="c2_tags" value="#해시태그1 #해시태그2"></div>
+                <div class="w-24 input-group mb-0"><label>해시태그 색상</label><input type="color" id="c2_tags_color" value="#d4d4d8" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+            </div>
+            <div class="input-group"><label>설명</label><textarea id="c2_desc">여기에 캐릭터 2에 대한 설명을 입력하세요.</textarea></div>
+            <div class="input-group"><label>말풍선 대사</label><input type="text" id="c2_quote" value="여기에 캐릭터 2의 대사를 입력하세요."></div>
+
+            <!-- 4. 호칭 -->
+            <div class="section-title">
+                4. 호칭 설정
+                <button type="button" onclick="addCall()" class="btn-outline">+ 호칭 추가</button>
+            </div>
+            
+            <div class="flex gap-4 mb-4">
+                <div class="flex-1 input-group mb-0"><label>호칭 메인 소제목</label><input type="text" id="call_main_sub" value="Relationship Dynamics"></div>
+                <div class="flex-1 input-group mb-0"><label>호칭 메인 제목</label><input type="text" id="call_main_title" value="우리가 서로를 부를 때"></div>
+            </div>
+            <div class="input-group"><label>호칭 메인 부제목 (설명)</label><input type="text" id="call_main_desc" value="그 속에 담긴 온도는 누구보다 확실한 두 사람의 호칭."></div>
+
+            <div id="calls-container" class="bg-zinc-50/50 p-3 rounded-lg border border-zinc-200"></div>
+
+            <!-- 5. 메신저 대화 -->
+            <div class="section-title">
+                5. 메신저 대화 (채팅)
+                <button type="button" onclick="addChat()" class="btn-outline">+ 대화 추가</button>
+            </div>
+            <div class="input-group"><label>채팅방 상단 날짜/설명</label><input type="text" id="chat_date" value="여기에 상황이나 날짜를 입력하세요"></div>
+            <div id="chats-container" class="bg-zinc-50/50 p-3 rounded-lg border border-zinc-200"></div>
+
+            <!-- 6. 서사 (Phase) -->
+            <div class="section-title">
+                6. 서사 기록
+                <button type="button" onclick="addPhase()" class="btn-outline">+ 서사 추가</button>
+            </div>
+            
+            <div class="flex gap-4 mb-4">
+                <div class="flex-1 input-group mb-0"><label>서사 메인 소제목</label><input type="text" id="story_main_sub" value="Connection"></div>
+                <div class="flex-1 input-group mb-0"><label>서사 메인 제목</label><input type="text" id="story_main_title" value="흐르는 시간 속의 기록"></div>
+            </div>
+            <div class="input-group"><label>서사 메인 부제목 (설명)</label><input type="text" id="story_main_desc" value="거짓된 무대 위에서 내려와, 서로의 삶을 영원한 닻으로 삼기까지"></div>
+            
+            <p class="text-[10px] text-zinc-500 font-normal mb-2">※ 내용 입력 시 *텍스트* 처럼 별표로 감싸면 텍스트 컬러와 동일한 색상으로 강조(Bold)됩니다.</p>
+            <div id="phases-container" class="bg-zinc-50/50 p-3 rounded-lg border border-zinc-200"></div>
+
+            <!-- 7. 갤러리 -->
+            <div class="section-title">
+                7. 갤러리 (기억의 조각들)
+                <button type="button" onclick="addGallery()" class="btn-outline">+ 이미지 추가</button>
+            </div>
+            
+            <div class="flex gap-4 mb-4">
+                <div class="flex-1 input-group mb-0"><label>갤러리 메인 소제목</label><input type="text" id="gallery_main_sub" value="Moments in Memories"></div>
+                <div class="flex-1 input-group mb-0"><label>갤러리 메인 제목</label><input type="text" id="gallery_main_title" value="기억의 조각들"></div>
+            </div>
+            <div class="input-group"><label>갤러리 메인 부제목 (설명)</label><input type="text" id="gallery_main_desc" value="프레임 속에 가둬둔, 지워지지 않을 순간들"></div>
+
+            <div id="galleries-container" class="bg-zinc-50/50 p-3 rounded-lg border border-zinc-200"></div>
+
+            <!-- 8. Footer -->
+            <div class="section-title">8. Footer</div>
+            <div class="input-group"><label>카피라이트</label><input type="text" id="footer" value="&copy; 카피라이트를 입력하세요"></div>
+
+            <div class="h-32"></div>
+        </div>
+    </aside>
+
+    <!-- 오른쪽: 실시간 미리보기 -->
+    <main class="flex-1 h-full bg-zinc-200 relative p-4">
+        <div class="w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-zinc-300 bg-white relative">
+            <iframe id="preview" class="w-full h-full border-none absolute inset-0"></iframe>
+        </div>
+    </main>
+
+    <!-- 알림창 -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-zinc-900 text-white px-6 py-3 rounded-full shadow-2xl font-bold transition-all duration-300 opacity-0 pointer-events-none z-50">
+        ✅ 코드가 클립보드에 복사되었습니다!
+    </div>
+
+    <script>
+        // --- 데이터 상태 관리 ---
+        let calls = [
+            { direction: "2to1", text: "호칭 1", type: "normal", desc: "" },
+            { direction: "1to2", text: "호칭 2", type: "highlight", desc: "여기에 호칭 설명을 입력하세요." }
+        ];
+
+        let chats = [
+            { sender: "char2", text: "여기에 첫 번째 대화를 입력하세요." },
+            { sender: "char1", text: "여기에 두 번째 대화를 입력하세요." }
+        ];
+
+        let phases = [
+            { color: "#d4d4d8", textColor: "#52525b", sub: "Phase 01. 소제목", title: "여기에 제목을 입력하세요", desc: "여기에 서사를 입력하세요. *강조할 텍스트*는 별표로 감싸주세요.", progressText: "" },
+            { color: "#a1a1aa", textColor: "#52525b", sub: "Phase 02. 소제목", title: "여기에 제목을 입력하세요", desc: "여기에 서사를 입력하세요. *강조할 텍스트*는 별표로 감싸주세요.", progressText: "" },
+            { color: "#52525b", textColor: "#52525b", sub: "Phase 03. 소제목", title: "여기에 제목을 입력하세요", desc: "여기에 서사를 입력하세요. *강조할 텍스트*는 별표로 감싸주세요.", progressText: "" },
+            { color: "#71717a", textColor: "#52525b", sub: "Phase 04. 소제목", title: "여기에 제목을 입력하세요", desc: "여기에 서사를 입력하세요. *강조할 텍스트*는 별표로 감싸주세요.", progressText: "" },
+            { color: "#a1a1aa", textColor: "#52525b", sub: "Phase 05. 소제목", title: "여기에 제목을 입력하세요", desc: "여기에 서사를 입력하세요. *강조할 텍스트*는 별표로 감싸주세요.", progressText: "" },
+            { color: "#18181b", textColor: "#52525b", sub: "Phase 06. 소제목", title: "여기에 제목을 입력하세요", desc: "여기에 서사를 입력하세요. *강조할 텍스트*는 별표로 감싸주세요.", progressText: "(진실)" }
+        ];
+
+        let galleries = [
+            { img: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
+            { img: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
+            { img: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." },
+            { img: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." }
+        ];
+
+        // --- 유틸리티 ---
+        function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+        function htmlVal(id) { return val(id).replace(/\n/g, '<br>'); }
+        function hexToRgb(hex) {
+            hex = hex.replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            return `${parseInt(hex.slice(0, 2), 16)} ${parseInt(hex.slice(2, 4), 16)} ${parseInt(hex.slice(4, 6), 16)}`;
+        }
+        const escapeHTML = str => (str || '').replace(/"/g, '&quot;');
+
+        // 서사 텍스트 파싱 (*텍스트* -> 강조)
+        function parseStoryDescText(text, color) {
+            let htmlText = (text || '').replace(/\n/g, '<br>');
+            return htmlText.replace(/\*(.*?)\*/g, `<span style="color: ${color}; font-weight: 900;">$1</span>`);
+        }
+
+        // --- 파일 업로드 처리 ---
+        function handleFileUpload(event, targetId) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const targetInput = document.getElementById(targetId);
+                    targetInput.value = e.target.result; // Base64 데이터 삽입
+                    if (!isInitialLoad) debouncedUpdate(); // 즉시 업데이트
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleDynamicFile(event, type, idx) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if(type === 'gallery') galleries[idx].img = e.target.result;
+                    renderGalleries();
+                    if (!isInitialLoad) debouncedUpdate();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // --- 동적 렌더링 함수 (왼쪽 패널) ---
+        function renderCalls() {
+            const container = document.getElementById('calls-container');
+            container.innerHTML = '';
+            calls.forEach((c, i) => {
+                container.innerHTML += `
+                    <div class="item-box">
+                        <button type="button" class="delete-btn" onclick="removeCall(${i})">삭제</button>
+                        <div class="input-group mb-2">
+                            <label>방향</label>
+                            <select onchange="calls[${i}].direction=this.value; debouncedUpdate()">
+                                <option value="2to1" ${c.direction==='2to1'?'selected':''}>캐릭터2(우) → 캐릭터1(좌)</option>
+                                <option value="1to2" ${c.direction==='1to2'?'selected':''}>캐릭터1(좌) → 캐릭터2(우)</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2 mb-2">
+                            <div class="flex-1 input-group mb-0"><label>호칭 텍스트</label><input type="text" value="${escapeHTML(c.text)}" oninput="calls[${i}].text=this.value; debouncedUpdate()"></div>
+                            <div class="flex-1 input-group mb-0">
+                                <label>스타일</label>
+                                <select onchange="calls[${i}].type=this.value; debouncedUpdate()">
+                                    <option value="normal" ${c.type==='normal'?'selected':''}>일반 (회색 바탕)</option>
+                                    <option value="highlight" ${c.type==='highlight'?'selected':''}>강조 (캐릭터 테마색)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="input-group mb-0"><label>설명 (선택사항)</label><input type="text" value="${escapeHTML(c.desc)}" oninput="calls[${i}].desc=this.value; debouncedUpdate()"></div>
+                    </div>`;
+            });
+            if (!isInitialLoad) debouncedUpdate();
+        }
+
+        function renderChats() {
+            const container = document.getElementById('chats-container');
+            container.innerHTML = '';
+            chats.forEach((c, i) => {
+                container.innerHTML += `
+                    <div class="item-box">
+                        <button type="button" class="delete-btn" onclick="removeChat(${i})">삭제</button>
+                        <div class="input-group mb-2">
+                            <label>보낸 사람</label>
+                            <select onchange="chats[${i}].sender=this.value; debouncedUpdate()">
+                                <option value="char1" ${c.sender==='char1'?'selected':''}>캐릭터 1 (오른쪽 노출)</option>
+                                <option value="char2" ${c.sender==='char2'?'selected':''}>캐릭터 2 (왼쪽 노출)</option>
+                            </select>
+                        </div>
+                        <div class="input-group mb-0"><label>메시지 내용 (&lt;br&gt;로 줄바꿈 가능)</label><textarea oninput="chats[${i}].text=this.value; debouncedUpdate()">${c.text}</textarea></div>
+                    </div>`;
+            });
+            if (!isInitialLoad) debouncedUpdate();
+        }
+
+        function renderPhases() {
+            const container = document.getElementById('phases-container');
+            container.innerHTML = '';
+            phases.forEach((p, i) => {
+                container.innerHTML += `
+                    <div class="item-box border-l-4 border-zinc-400">
+                        <button type="button" class="delete-btn" onclick="removePhase(${i})">삭제</button>
+                        <div class="font-bold text-zinc-800 mb-2">Phase ${i + 1}</div>
+                        <div class="flex gap-4 mb-2">
+                            <div class="flex-1 input-group mb-0"><label>테마 컬러</label><input type="color" value="${p.color}" oninput="phases[${i}].color=this.value; debouncedUpdate()" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+                            <div class="flex-1 input-group mb-0"><label>텍스트 컬러</label><input type="color" value="${p.textColor}" oninput="phases[${i}].textColor=this.value; debouncedUpdate()" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+                        </div>
+                        <div class="input-group"><label>소제목</label><input type="text" value="${escapeHTML(p.sub)}" oninput="phases[${i}].sub=this.value; debouncedUpdate()"></div>
+                        <div class="input-group"><label>제목</label><input type="text" value="${escapeHTML(p.title)}" oninput="phases[${i}].title=this.value; debouncedUpdate()"></div>
+                        <div class="input-group"><label>내용</label><textarea oninput="phases[${i}].desc=this.value; debouncedUpdate()">${p.desc}</textarea></div>
+                        <div class="input-group mb-0"><label>스크롤 하단 문구 (예: (진실))</label><input type="text" value="${escapeHTML(p.progressText)}" oninput="phases[${i}].progressText=this.value; debouncedUpdate()"></div>
+                    </div>`;
+            });
+            if (!isInitialLoad) debouncedUpdate();
+        }
+
+        function renderGalleries() {
+            const container = document.getElementById('galleries-container');
+            container.innerHTML = '';
+            galleries.forEach((g, i) => {
+                container.innerHTML += `
+                    <div class="item-box border-l-4 border-zinc-400">
+                        <button type="button" class="delete-btn" onclick="removeGallery(${i})">삭제</button>
+                        <div class="font-bold text-zinc-800 mb-2">Gallery ${i + 1}</div>
+                        <div class="input-group">
+                            <label>이미지 URL (또는 파일 첨부)</label>
+                            <div class="flex gap-2">
+                                <input type="text" value="${escapeHTML(g.img)}" oninput="galleries[${i}].img=this.value; debouncedUpdate()" placeholder="이미지 URL 입력" class="flex-1">
+                                <input type="file" id="g_file_${i}" accept="image/*" class="hidden" onchange="handleDynamicFile(event, 'gallery', ${i})">
+                                <button type="button" onclick="document.getElementById('g_file_${i}').click()" class="btn-outline shrink-0">파일 첨부</button>
+                            </div>
+                        </div>
+                        <div class="input-group"><label>태그</label><input type="text" value="${escapeHTML(g.tag)}" oninput="galleries[${i}].tag=this.value; debouncedUpdate()"></div>
+                        <div class="input-group"><label>제목</label><input type="text" value="${escapeHTML(g.title)}" oninput="galleries[${i}].title=this.value; debouncedUpdate()"></div>
+                        <div class="input-group"><label>설명</label><textarea oninput="galleries[${i}].desc=this.value; debouncedUpdate()">${g.desc}</textarea></div>
+                    </div>`;
+            });
+            if (!isInitialLoad) debouncedUpdate();
+        }
+
+        function addCall() { calls.push({ direction: "2to1", text: "새 호칭", type: "normal", desc: "" }); renderCalls(); }
+        function removeCall(idx) { calls.splice(idx, 1); renderCalls(); }
+        function addChat() { chats.push({ sender: "char1", text: "새 메시지" }); renderChats(); }
+        function removeChat(idx) { chats.splice(idx, 1); renderChats(); }
+        function addPhase() { phases.push({ color: "#d4d4d8", textColor: "#52525b", sub: "Phase 새 소제목", title: "새 제목", desc: "새 내용", progressText: "" }); renderPhases(); }
+        function removePhase(idx) { phases.splice(idx, 1); renderPhases(); }
+        function addGallery() { galleries.push({ img: "", tag: "#새_태그", title: "새 이미지", desc: "설명" }); renderGalleries(); }
+        function removeGallery(idx) { galleries.splice(idx, 1); renderGalleries(); }
+
+        // --- HTML 조각 생성 함수들 ---
+        function getCallsData() {
+            let c2to1_calls = '', c1to2_calls = '', c2to1_desc = '', c1to2_desc = '';
+            calls.forEach(c => {
+                let badge = '';
+                if(c.direction === '2to1') {
+                    if(c.type === 'normal') badge = `<span class="px-4 py-1.5 bg-white rounded-full text-sm font-medium text-zinc-600 shadow-sm border border-zinc-100">"${c.text}"</span>`;
+                    else badge = `<span class="px-4 py-1.5 bg-dahee/10 rounded-full text-sm font-bold text-dahee shadow-sm border border-dahee/20">"${c.text}"</span>`;
+                    c2to1_calls += badge;
+                    if(c.desc) c2to1_desc += `<p class="text-xs text-zinc-400 mt-3 font-light ml-1 w-full">${c.desc}</p>`;
+                } else {
+                    if(c.type === 'normal') badge = `<span class="px-4 py-1.5 bg-white rounded-full text-sm font-medium text-zinc-600 shadow-sm border border-zinc-100">"${c.text}"</span>`;
+                    else badge = `<span class="px-4 py-1.5 bg-yeonji/10 rounded-full text-sm font-bold text-yeonji shadow-sm border border-yeonji/30">"${c.text}"</span>`;
+                    c1to2_calls += badge;
+                    if(c.desc) c1to2_desc += `<p class="text-xs text-zinc-400 mt-3 font-light ml-1 w-full">${c.desc}</p>`;
+                }
+            });
+            return { c2to1_calls, c1to2_calls, c2to1_desc, c1to2_desc };
+        }
+
+        function getChatsHTML() {
+            let chatHTML = '';
+            chats.forEach((c, i) => {
+                let delay = (i * 0.8) + 0.2;
+                if(c.sender === 'char2') {
+                    chatHTML += `
+                    <div class="flex gap-2 items-end chat-bubble" style="animation-delay: ${delay}s;">
+                        <img src="${val('c2_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="w-8 h-8 rounded-full object-cover shadow-sm shrink-0 bg-zinc-200">
+                        <div class="bg-white border border-zinc-200 text-zinc-700 text-sm px-4 py-2 rounded-2xl rounded-bl-none shadow-sm max-w-[75%]">${c.text.replace(/\n/g, '<br>')}</div>
+                    </div>`;
+                } else {
+                    chatHTML += `
+                    <div class="flex gap-2 items-end justify-end chat-bubble" style="animation-delay: ${delay}s;">
+                        <div class="bg-yeonji text-white text-sm px-4 py-2 rounded-2xl rounded-br-none shadow-sm max-w-[75%]">${c.text.replace(/\n/g, '<br>')}</div>
+                        <img src="${val('c1_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="w-8 h-8 rounded-full object-cover shadow-sm shrink-0 bg-zinc-200">
+                    </div>`;
+                }
+            });
+            return chatHTML;
+        }
+
+        function getPhasesHTML() {
+            let phasesHTML = '';
+            phases.forEach((p, i) => {
+                let pProgress = phases.length > 1 ? Math.round(((i + 1) / phases.length) * 100) : 100;
+                let parsedDesc = parseStoryDescText(p.desc, p.textColor); // 강조 로직 적용 (텍스트 컬러 따라감)
+                let pTextAttr = escapeHTML(p.progressText || '');
+                phasesHTML += `
+                    <div class="story-phase relative pl-8 md:pl-12" data-progress="${pProgress}" data-progress-text="${pTextAttr}">
+                        <div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full border-4 border-paper shadow-sm" style="background-color: ${p.color}; box-shadow: 0 0 15px ${p.color}80;"></div>
+                        <span class="text-xs font-bold tracking-widest uppercase block mb-1" style="color: ${p.color};">${p.sub}</span>
+                        <h4 class="text-xl font-bold text-zinc-800 mb-3">${p.title}</h4>
+                        <p class="text-sm leading-relaxed mb-4" style="color: ${p.textColor};">${parsedDesc}</p>
+                    </div>`;
+            });
+            return phasesHTML;
+        }
+
+        function getGalleryHTML() {
+            let galleryHTML = '';
+            galleries.forEach((g, i) => {
+                let mt = (i % 2 !== 0) ? 'md:mt-12' : '';
+                let htmlDesc = (g.desc || '').replace(/\n/g, '<br>');
+                galleryHTML += `
+                <div class="relative group rounded-[2.5rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 aspect-[4/5] bg-zinc-200 border border-zinc-200/50 ${mt}">
+                    <img src="${g.img || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/95 via-zinc-900/40 to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-full p-8 text-white flex flex-col justify-end pointer-events-none">
+                        <span class="text-zinc-400 text-xs font-bold tracking-widest uppercase mb-1">${g.tag}</span>
+                        <h4 class="text-2xl font-bold mb-2 tracking-tight">${g.title}</h4>
+                        <p class="text-zinc-200 text-sm font-light leading-relaxed">${htmlDesc}</p>
+                    </div>
+                </div>`;
+            });
+            return galleryHTML;
+        }
+
+        // --- HTML 전체 코드 제너레이터 (복사용 및 파일 저장용) ---
+        function generateCode() {
+            const callsData = getCallsData();
+            return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${val('h_sub')}</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --c1: ${hexToRgb(val('c1_color'))}; --c2: ${hexToRgb(val('c2_color'))}; }
+        body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(228, 228, 231, 0.8); box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.05); }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9) translateY(10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        .chat-bubble { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; }
+    </style>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { yeonji: 'rgb(var(--c1) / <alpha-value>)', dahee: 'rgb(var(--c2) / <alpha-value>)', paper: '#f4f4f5' } } } }
+    <\/script>
+</head>
+<body class="bg-paper text-zinc-800 antialiased selection:bg-dahee selection:text-white relative overflow-x-hidden">
+
+    <header class="relative w-full py-20 px-6 flex flex-col items-center justify-center text-center overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/90 via-transparent to-transparent"></div>
+        <div class="relative z-10 max-w-4xl mx-auto pt-10">
+            <span id="out_h_sub" class="text-xs md:text-sm font-bold tracking-[0.4em] text-zinc-400 block mb-4 uppercase">${val('h_sub')}</span>
+            <h1 class="text-4xl md:text-5xl font-black text-zinc-800 mt-2 mb-6 leading-tight tracking-tight">
+                <span id="out_h_t1">${val('h_t1')}<br class="hidden md:block"></span>
+                <span id="out_h_t2" class="text-transparent bg-clip-text bg-gradient-to-r from-yeonji to-dahee">${val('h_t2')}</span><span id="out_h_t3">${val('h_t3')}</span>
+            </h1>
+            <p id="out_h_desc" class="text-lg text-zinc-500 max-w-2xl mx-auto leading-relaxed font-light">${htmlVal('h_desc')}</p>
+        </div>
+    </header>
+
+    <section id="profile" class="max-w-5xl mx-auto px-6 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
+            <div class="flex flex-col gap-4">
+                <div class="relative w-full aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl group border border-zinc-200/50 bg-zinc-200">
+                    <img id="out_c1_img" src="${val('c1_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/95 via-zinc-900/40 to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-full p-8 text-white flex flex-col justify-end h-1/2 pointer-events-none">
+                        <div class="flex items-end gap-3 mb-1"><h2 id="out_c1_name" class="text-4xl font-bold tracking-tight">${val('c1_name')}</h2><span id="out_c1_sub" class="text-2xl font-light opacity-90">${val('c1_sub')}</span></div>
+                        <p id="out_c1_tags" class="font-medium mb-4 text-sm tracking-wide" style="color: ${val('c1_tags_color')};">${val('c1_tags')}</p>
+                        <div class="overflow-y-auto hide-scroll max-h-[120px] pr-2 pointer-events-auto"><p id="out_c1_desc" class="text-sm text-zinc-200 leading-relaxed font-light">${htmlVal('c1_desc')}</p></div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-5 border-l-4 border-yeonji relative ml-4 mt-2">
+                    <div class="absolute -top-3 left-6 w-6 h-6 glass-panel rotate-45 border-r-0 border-b-0"></div>
+                    <p id="out_c1_quote" class="text-zinc-700 text-sm font-medium leading-relaxed z-10 relative">${htmlVal('c1_quote')}</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="relative w-full aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl group border border-zinc-200/50 bg-zinc-200">
+                    <img id="out_c2_img" src="${val('c2_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/95 via-zinc-900/40 to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-full p-8 text-white flex flex-col justify-end h-1/2 pointer-events-none">
+                        <div class="flex items-end gap-3 mb-1"><h2 id="out_c2_name" class="text-4xl font-bold tracking-tight">${val('c2_name')}</h2><span id="out_c2_sub" class="text-2xl font-light opacity-90">${val('c2_sub')}</span></div>
+                        <p id="out_c2_tags" class="font-medium mb-4 text-sm tracking-wide" style="color: ${val('c2_tags_color')};">${val('c2_tags')}</p>
+                        <div class="overflow-y-auto hide-scroll max-h-[120px] pr-2 pointer-events-auto"><p id="out_c2_desc" class="text-sm text-zinc-200 leading-relaxed font-light">${htmlVal('c2_desc')}</p></div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-5 border-l-4 border-dahee relative ml-4 mt-2">
+                    <div class="absolute -top-3 left-6 w-6 h-6 glass-panel rotate-45 border-r-0 border-b-0"></div>
+                    <p id="out_c2_quote" class="text-zinc-700 text-sm font-medium leading-relaxed z-10 relative">${htmlVal('c2_quote')}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="communication" class="max-w-5xl mx-auto px-6 py-20 border-t border-zinc-200/60">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-10">
+                <div class="space-y-2">
+                    <span id="out_call_main_sub" class="text-xs font-bold text-zinc-400 tracking-widest uppercase">${val('call_main_sub')}</span>
+                    <h3 id="out_call_main_title" class="text-3xl font-black text-zinc-800">${val('call_main_title')}</h3>
+                    <p id="out_call_main_desc" class="text-sm text-zinc-500 font-light leading-relaxed">${htmlVal('call_main_desc')}</p>
+                </div>
+                <div class="space-y-6">
+                    <div class="bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-dahee/20 shadow-sm relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-dahee"></div>
+                        <h4 class="text-sm font-bold text-zinc-700 mb-4 flex items-center gap-2">
+                            <img id="out_c2_img_call" src="${val('c2_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="w-6 h-6 rounded-full object-cover bg-zinc-200">
+                            <span id="out_c2_name_call">${val('c2_name')}</span> <span class="text-zinc-400 mx-1">→</span> <span id="out_c1_name_call">${val('c1_name')}</span>
+                        </h4>
+                        <div id="out_calls_2to1" class="flex flex-wrap gap-2">${callsData.c2to1_calls}</div>
+                        <div id="out_calls_2to1_desc">${callsData.c2to1_desc}</div>
+                    </div>
+                    <div class="bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-yeonji/20 shadow-sm relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-yeonji"></div>
+                        <h4 class="text-sm font-bold text-zinc-700 mb-4 flex items-center gap-2">
+                            <img id="out_c1_img_call" src="${val('c1_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="w-6 h-6 rounded-full object-cover bg-zinc-200">
+                            <span id="out_c1_name_call2">${val('c1_name')}</span> <span class="text-zinc-400 mx-1">→</span> <span id="out_c2_name_call2">${val('c2_name')}</span>
+                        </h4>
+                        <div id="out_calls_1to2" class="flex flex-wrap gap-2 items-center">${callsData.c1to2_calls}</div>
+                        <div id="out_calls_1to2_desc">${callsData.c1to2_desc}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center lg:justify-end">
+                <div class="w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl border-4 border-zinc-100 overflow-hidden flex flex-col h-[500px] relative">
+                    <div class="bg-zinc-50/90 backdrop-blur-md border-b border-zinc-200 p-4 flex items-center gap-3 sticky top-0 z-10">
+                        <div class="w-2 h-2 rounded-full bg-dahee animate-pulse"></div>
+                        <h4 id="out_chat_c2_name" class="font-bold text-zinc-700 text-sm flex-1">${val('c2_name')}</h4>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-50/30 hide-scroll">
+                        <div class="text-center"><span id="out_chat_date" class="text-[10px] bg-zinc-200/50 text-zinc-500 px-3 py-1 rounded-full">${val('chat_date')}</span></div>
+                        <div id="out_chats_container" class="flex flex-col gap-4">${getChatsHTML()}</div>
+                    </div>
+                    <div class="bg-white border-t border-zinc-200 p-3 flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">+</div>
+                        <div class="flex-1 bg-zinc-100 rounded-full h-9 px-4 flex items-center text-xs text-zinc-400">메시지 입력...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="story" class="max-w-5xl mx-auto px-6 py-24 border-t border-zinc-200/60 relative flex">
+        <div class="hidden md:flex flex-col items-center w-24 mr-8 sticky top-32 h-[75vh]">
+            <span id="out_story_main_sub" class="text-[10px] font-bold text-zinc-400 tracking-widest mb-2 uppercase">${val('story_main_sub')}</span>
+            <div class="relative w-3 flex-1 bg-zinc-200 rounded-full overflow-hidden">
+                <div id="trust-bar" class="absolute bottom-0 w-full bg-gradient-to-t from-yeonji to-dahee rounded-full transition-all duration-300" style="height: 0%;"></div>
+            </div>
+            <span id="trust-text" class="text-xs font-bold text-zinc-600 mt-3 text-center transition-all">0%</span>
+        </div>
+        <div class="flex-1">
+            <div class="text-center mb-16">
+                <h3 id="out_story_main_title" class="text-3xl font-black text-zinc-800 mb-4">${val('story_main_title')}</h3>
+                <p id="out_story_main_desc" class="text-sm text-zinc-500 font-light leading-relaxed">${htmlVal('story_main_desc')}</p>
+            </div>
+            <div id="out_story_container" class="relative border-l-2 border-zinc-200 ml-4 md:ml-0 space-y-20 pb-10">
+                ${getPhasesHTML()}
+            </div>
+        </div>
+    </section>
+
+    <section id="gallery" class="max-w-5xl mx-auto px-6 py-24 border-t border-zinc-200/60">
+        <div class="text-center mb-16">
+            <span id="out_gallery_main_sub" class="text-xs font-bold text-yeonji tracking-widest uppercase block mb-2">${val('gallery_main_sub')}</span>
+            <h3 id="out_gallery_main_title" class="text-3xl font-black text-zinc-800 mb-4">${val('gallery_main_title')}</h3>
+            <p id="out_gallery_main_desc" class="text-sm text-zinc-500 font-light leading-relaxed">${htmlVal('gallery_main_desc')}</p>
+        </div>
+        <div id="out_gallery_container" class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-start">
+            ${getGalleryHTML()}
+        </div>
+    </section>
+
+    <footer class="bg-zinc-200/50 py-10 text-center">
+        <p id="out_footer" class="text-xs text-zinc-500 font-medium tracking-widest uppercase">${val('footer')}</p>
+    </footer>
+
+    <script>
+        const storySection = document.getElementById('story');
+        const trustBar = document.getElementById('trust-bar');
+        const trustText = document.getElementById('trust-text');
+        window.addEventListener('scroll', () => {
+            const rect = storySection.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                let currentProgress = 0;
+                let currentText = '';
+                const currentPhases = document.querySelectorAll('.story-phase');
+                currentPhases.forEach(phase => {
+                    if(phase.getBoundingClientRect().top < window.innerHeight * 0.6) {
+                        currentProgress = phase.getAttribute('data-progress');
+                        currentText = phase.getAttribute('data-progress-text') || '';
+                    }
+                });
+                trustBar.style.height = \`\${currentProgress}%\`;
+                trustText.innerHTML = \`\${currentProgress}%\` + (currentText ? \`<br><span class="text-[10px] font-medium text-zinc-500">\${currentText}</span>\` : '');
+            }
+        });
+    <\/script>
+</body>
+</html>`;
+        }
+
+        // --- 실시간 미리보기 DOM 업데이트 (깜빡임 완벽 방지) ---
+        let isInitialLoad = true; // 무한 로딩 방지를 위한 플래그
+
+        function updatePreviewDOM() {
+            const iframe = document.getElementById('preview');
+            const doc = iframe.contentDocument;
+            
+            if (!doc) return; // iframe이 없으면 무시
+
+            // 1. CSS 변수(색상) 실시간 업데이트
+            doc.documentElement.style.setProperty('--c1', hexToRgb(val('c1_color')));
+            doc.documentElement.style.setProperty('--c2', hexToRgb(val('c2_color')));
+
+            // DOM 텍스트/HTML/속성 변경 헬퍼
+            const setTxt = (id, v) => { const el = doc.getElementById(id); if(el) el.innerText = v; };
+            const setHtml = (id, v) => { const el = doc.getElementById(id); if(el) el.innerHTML = v; };
+            const setSrc = (id, v) => { const el = doc.getElementById(id); if(el) el.src = v || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; };
+
+            // 2. 메인 헤더
+            setTxt('out_h_sub', val('h_sub'));
+            setHtml('out_h_t1', val('h_t1') + '<br class="hidden md:block">');
+            setTxt('out_h_t2', val('h_t2'));
+            setTxt('out_h_t3', val('h_t3'));
+            setHtml('out_h_desc', htmlVal('h_desc'));
+
+            // 3. 캐릭터 1
+            setSrc('out_c1_img', val('c1_img'));
+            setTxt('out_c1_name', val('c1_name'));
+            setTxt('out_c1_sub', val('c1_sub'));
+            setTxt('out_c1_tags', val('c1_tags'));
+            const c1TagsEl = doc.getElementById('out_c1_tags');
+            if(c1TagsEl) c1TagsEl.style.color = val('c1_tags_color');
+            setHtml('out_c1_desc', htmlVal('c1_desc'));
+            setHtml('out_c1_quote', htmlVal('c1_quote'));
+
+            // 4. 캐릭터 2
+            setSrc('out_c2_img', val('c2_img'));
+            setTxt('out_c2_name', val('c2_name'));
+            setTxt('out_c2_sub', val('c2_sub'));
+            setTxt('out_c2_tags', val('c2_tags'));
+            const c2TagsEl = doc.getElementById('out_c2_tags');
+            if(c2TagsEl) c2TagsEl.style.color = val('c2_tags_color');
+            setHtml('out_c2_desc', htmlVal('c2_desc'));
+            setHtml('out_c2_quote', htmlVal('c2_quote'));
+
+            // 5. 호칭
+            setTxt('out_call_main_sub', val('call_main_sub'));
+            setTxt('out_call_main_title', val('call_main_title'));
+            setHtml('out_call_main_desc', htmlVal('call_main_desc'));
+            
+            setTxt('out_c2_name_call', val('c2_name'));
+            setTxt('out_c1_name_call', val('c1_name'));
+            setTxt('out_c1_name_call2', val('c1_name'));
+            setTxt('out_c2_name_call2', val('c2_name'));
+            setSrc('out_c2_img_call', val('c2_img'));
+            setSrc('out_c1_img_call', val('c1_img'));
+
+            const callsData = getCallsData();
+            setHtml('out_calls_2to1', callsData.c2to1_calls);
+            setHtml('out_calls_2to1_desc', callsData.c2to1_desc);
+            setHtml('out_calls_1to2', callsData.c1to2_calls);
+            setHtml('out_calls_1to2_desc', callsData.c1to2_desc);
+
+            // 6. 채팅
+            setTxt('out_chat_c2_name', val('c2_name'));
+            setTxt('out_chat_date', val('chat_date'));
+            setHtml('out_chats_container', getChatsHTML());
+
+            // 7. 서사 & 갤러리 (메인 제목/소제목/설명 포함)
+            setTxt('out_story_main_sub', val('story_main_sub'));
+            setTxt('out_story_main_title', val('story_main_title'));
+            setHtml('out_story_main_desc', htmlVal('story_main_desc'));
+            
+            setTxt('out_gallery_main_sub', val('gallery_main_sub'));
+            setTxt('out_gallery_main_title', val('gallery_main_title'));
+            setHtml('out_gallery_main_desc', htmlVal('gallery_main_desc'));
+            
+            setHtml('out_story_container', getPhasesHTML());
+            setHtml('out_gallery_container', getGalleryHTML());
+
+            // 8. 푸터
+            setTxt('out_footer', val('footer'));
+        }
+
+        // --- 실시간 미리보기 업데이트 (디바운싱) ---
+        let timeout = null;
+        function debouncedUpdate() {
+            if (isInitialLoad) return; // 초기 로딩 중에는 DOM 업데이트 무시
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                updatePreviewDOM();
+            }, 50);
+        }
+
+        // --- 알림창 기능 ---
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -20px)';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, 0)';
+            }, 3000);
+        }
+
+        // --- 코드 복사 기능 ---
+        function copyHTML() {
+            const finalCode = generateCode();
+            const temp = document.createElement("textarea");
+            temp.value = finalCode;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand("copy");
+            document.body.removeChild(temp);
+            showToast('✅ 코드가 클립보드에 복사되었습니다!');
+        }
+
+        // --- HTML 파일 저장 기능 ---
+        function saveAsHTML() {
+            const finalCode = generateCode();
+            const blob = new Blob([finalCode], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.download = 'pair_story.html';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            showToast('💾 HTML 파일이 성공적으로 저장되었습니다!');
+        }
+
+        // --- 고화질 이미지 저장 기능 ---
+        function saveAsImage() {
+            const btn = document.getElementById('btn-save-img');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ 캡처 중...";
+            btn.disabled = true;
+
+            const iframe = document.getElementById('preview');
+            const docEl = iframe.contentDocument.documentElement;
+            const target = iframe.contentDocument.body;
+
+            // 스크롤바 숨기기
+            const originalBodyOverflow = target.style.overflow;
+            const originalDocOverflow = docEl.style.overflow;
+            target.style.overflow = 'hidden';
+            docEl.style.overflow = 'hidden';
+
+            html2canvas(target, {
+                scale: 2, // 2배수 고화질
+                useCORS: true, // 외부 이미지 허용
+                allowTaint: false,
+                backgroundColor: '#f4f4f5',
+                windowWidth: docEl.scrollWidth,
+                windowHeight: docEl.scrollHeight
+            }).then(canvas => {
+                target.style.overflow = originalBodyOverflow; // 스크롤바 원상복구
+                docEl.style.overflow = originalDocOverflow;
+                
+                const link = document.createElement('a');
+                link.download = 'pair_story.png';
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+
+                btn.innerText = originalText;
+                btn.disabled = false;
+                showToast('📸 이미지가 성공적으로 저장되었습니다!');
+            }).catch(err => {
+                console.error(err);
+                alert("이미지 저장 중 오류가 발생했습니다. (외부 URL 이미지 사용 시 브라우저 보안에 의해 막힐 수 있습니다. '파일 첨부' 기능을 사용해주세요.)");
+                target.style.overflow = originalBodyOverflow;
+                docEl.style.overflow = originalDocOverflow;
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        // 이벤트 리스너: 입력 폼의 어떤 값이든 변경되면 즉시 DOM 업데이트
+        document.getElementById('form-container').addEventListener('input', debouncedUpdate);
+
+        // 초기 실행
+        window.onload = () => {
+            renderCalls();
+            renderChats();
+            renderPhases();
+            renderGalleries();
+            
+            const iframe = document.getElementById('preview');
+            
+            // iframe이 완전히 로드된 후에만 실시간 업데이트를 허용
+            iframe.onload = () => {
+                isInitialLoad = false;
+                updatePreviewDOM(); // 로딩 중 입력된 값이 있다면 반영
+            };
+            
+            iframe.srcdoc = generateCode(); // 1회만 주입하여 무한 로딩 방지
+        };
+    </script>
+</body>
+</html>
