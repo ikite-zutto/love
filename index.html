@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -769,7 +768,8 @@
                 allowTaint: false,
                 backgroundColor: '#f4f4f5',
                 windowWidth: docEl.scrollWidth,
-                windowHeight: docEl.scrollHeight
+                windowHeight: docEl.scrollHeight,
+                window: iframe.contentWindow // iframe 렌더링 안정성 향상
             }).then(canvas => {
                 target.style.overflow = originalBodyOverflow; // 스크롤바 원상복구
                 docEl.style.overflow = originalDocOverflow;
