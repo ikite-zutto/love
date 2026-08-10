@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>페어 서사 스튜디오</title>
+    <title>페어 서사 스튜디오 (최종판)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 훨씬 안정적인 최신 이미지 캡처 라이브러리로 교체 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
@@ -160,9 +160,10 @@
 
             <div id="galleries-container" class="bg-zinc-50/50 p-3 rounded-lg border border-zinc-200"></div>
 
-            <!-- 8. Footer -->
-            <div class="section-title">8. Footer</div>
+            <!-- 8. Footer & 출처 -->
+            <div class="section-title">8. Footer & 출처</div>
             <div class="input-group"><label>카피라이트</label><input type="text" id="footer" value="&copy; 카피라이트를 입력하세요"></div>
+            <div class="input-group"><label>커미션 출처 (비워두면 숨김)</label><input type="text" id="credit" value="Commission by @출처를_입력하세요"></div>
 
             <div class="h-32"></div>
         </div>
@@ -627,8 +628,9 @@
         </div>
     </section>
 
-    <footer class="bg-zinc-200/50 py-10 text-center">
+    <footer class="bg-zinc-200/50 py-10 text-center flex flex-col items-center justify-center gap-2">
         <p id="out_footer" class="text-xs text-zinc-500 font-medium tracking-widest uppercase">${val('footer')}</p>
+        <p id="out_credit" class="text-[10px] text-zinc-400 font-light tracking-wide">${htmlVal('credit')}</p>
     </footer>
 
     <script>
@@ -736,8 +738,9 @@
             setHtml('out_story_container', getPhasesHTML());
             setHtml('out_gallery_container', getGalleryHTML());
 
-            // 8. 푸터
+            // 8. 푸터 & 출처
             setTxt('out_footer', val('footer'));
+            setHtml('out_credit', htmlVal('credit'));
         }
 
         // --- 실시간 미리보기 업데이트 (디바운싱) ---
