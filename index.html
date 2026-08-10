@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>페어 서사 스튜디오 (최종판)</title>
+    <title>페어 서사 스튜디오</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 이미지 캡처를 위한 라이브러리 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- 훨씬 안정적인 최신 이미지 캡처 라이브러리로 교체 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <!-- 세련된 UI를 위한 Pretendard 폰트 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -44,17 +44,20 @@
                 </button>
             </div>
             <div class="flex gap-2">
-                <button onclick="saveAsHTML()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow-sm">
-                    💾 HTML 저장
+                <button onclick="saveAsHTML()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow-sm" title="HTML 파일로 다운로드">
+                    💾 HTML
                 </button>
-                <button id="btn-save-img" onclick="saveAsImage()" class="flex-1 bg-zinc-600 hover:bg-zinc-500 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow-sm">
-                    📸 이미지 저장
+                <button id="btn-save-img" onclick="saveAsImage()" class="flex-1 bg-zinc-600 hover:bg-zinc-500 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow-sm" title="이미지로 다운로드">
+                    📸 이미지
+                </button>
+                <button onclick="openInNewWindow()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow-sm" title="새 탭에서 크게 보기 (브라우저 캡처용)">
+                    🌐 새 창 열기
                 </button>
             </div>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 pb-32 md:pb-6" id="form-container">
-            <p class="text-xs text-zinc-400 mb-4 font-semibold tracking-tight">※ 입력 시 우측 화면에 실시간으로 부드럽게 반영됩니다.</p>
+            <p class="text-xs text-zinc-400 mb-4 font-semibold tracking-tight">※ 입력 시 우측 화면에 실시간으로 반영됩니다.</p>
 
             <!-- 1. 메인 설정 -->
             <div class="section-title mt-0">1. 테마 & 메인 헤더</div>
@@ -62,7 +65,7 @@
                 <div class="flex-1 input-group mb-0"><label>캐릭터 1 컬러</label><input type="color" id="c1_color" value="#52525b" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
                 <div class="flex-1 input-group mb-0"><label>캐릭터 2 컬러</label><input type="color" id="c2_color" value="#a1a1aa" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
             </div>
-            <div class="input-group"><label>소제목</label><input type="text" id="h_sub" value="여기에 소제목을 입력하세요"></div>
+            <div class="input-group"><label>소제목</label><input type="text" id="h_sub" value="여기에 소제목 또는 캐치 프레이즈를 입력하세요"></div>
             <div class="input-group"><label>제목 (일반 텍스트)</label><input type="text" id="h_t1" value="메인 제목을"></div>
             <div class="input-group"><label>제목 (그라데이션 강조)</label><input type="text" id="h_t2" value="여기에"></div>
             <div class="input-group"><label>제목 (끝맺음)</label><input type="text" id="h_t3" value=" 입력하세요."></div>
@@ -759,6 +762,17 @@
             }, 3000);
         }
 
+        // --- 새 창 열기 기능 (브라우저 캡처용) ---
+        function openInNewWindow() {
+            const finalCode = generateCode();
+            const blob = new Blob([finalCode], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const newWin = window.open(url, '_blank');
+            if (!newWin) {
+                alert("팝업 차단이 설정되어 있습니다. 브라우저 설정에서 팝업 차단을 해제해주세요.");
+            }
+        }
+
         // --- 코드 복사 기능 ---
         function copyHTML() {
             const finalCode = generateCode();
@@ -782,7 +796,7 @@
             showToast('💾 HTML 파일이 성공적으로 저장되었습니다!');
         }
 
-        // --- 고화질 이미지 저장 기능 ---
+        // --- 고화질 이미지 저장 기능 (html-to-image 사용) ---
         function saveAsImage() {
             const btn = document.getElementById('btn-save-img');
             const originalText = btn.innerText;
@@ -799,20 +813,18 @@
             target.style.overflow = 'hidden';
             docEl.style.overflow = 'hidden';
 
-            html2canvas(target, {
-                scale: 2, // 2배수 고화질
-                useCORS: true, // 외부 이미지 허용
-                allowTaint: false,
+            // html-to-image 라이브러리 사용
+            window.htmlToImage.toPng(target, {
+                pixelRatio: 2, // 2배수 고화질
                 backgroundColor: '#f4f4f5',
-                windowWidth: docEl.scrollWidth,
-                windowHeight: docEl.scrollHeight
-            }).then(canvas => {
+                style: { transform: 'none' } // 깨짐 방지
+            }).then(dataUrl => {
                 target.style.overflow = originalBodyOverflow; // 스크롤바 원상복구
                 docEl.style.overflow = originalDocOverflow;
                 
                 const link = document.createElement('a');
                 link.download = 'pair_story.png';
-                link.href = canvas.toDataURL('image/png', 1.0);
+                link.href = dataUrl;
                 link.click();
 
                 btn.innerText = originalText;
@@ -820,7 +832,7 @@
                 showToast('📸 이미지가 성공적으로 저장되었습니다!');
             }).catch(err => {
                 console.error(err);
-                alert("이미지 저장 중 오류가 발생했습니다. (외부 URL 이미지 사용 시 브라우저 보안에 의해 막힐 수 있습니다. '파일 첨부' 기능을 사용해주세요.)");
+                alert("이미지 캡처 중 오류가 발생했습니다.\n대안: [🌐 새 창 열기] 버튼을 누른 후 브라우저의 기본 캡처 기능(전체 페이지 캡처)을 사용해주세요!");
                 target.style.overflow = originalBodyOverflow;
                 docEl.style.overflow = originalDocOverflow;
                 btn.innerText = originalText;
