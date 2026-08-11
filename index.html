@@ -25,8 +25,6 @@
         .input-group textarea { resize: vertical; min-height: 80px; }
         
         .item-box { background: #fff; border: 1px solid #e4e4e7; padding: 1.2rem; border-radius: 0.5rem; margin-bottom: 1rem; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .delete-btn { position: absolute; top: 0.7rem; right: 0.7rem; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7; border-radius: 0.3rem; padding: 0.3rem 0.6rem; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .delete-btn:hover { background: #e4e4e7; color: #18181b; }
         
         .btn-outline { background: #fff; border: 1px solid #d4d4d8; color: #3f3f46; padding: 0.3rem 0.6rem; border-radius: 0.3rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .btn-outline:hover { background: #f4f4f5; color: #18181b; border-color: #a1a1aa; }
@@ -60,6 +58,16 @@
                     🌐 새 창 열기
                 </button>
             </div>
+            <!-- 데이터 백업 & 복구 기능 추가 -->
+            <div class="flex gap-2 pt-2 border-t border-zinc-700/50">
+                <button onclick="saveData()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 rounded-lg transition-colors border border-zinc-700 shadow-sm" title="작성 중인 데이터를 파일로 저장합니다">
+                    📥 데이터 백업
+                </button>
+                <button onclick="document.getElementById('load_data_file').click()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold py-2 rounded-lg transition-colors border border-zinc-700 shadow-sm" title="저장해둔 백업 파일을 불러옵니다">
+                    📤 데이터 복구
+                </button>
+                <input type="file" id="load_data_file" accept=".json" class="hidden" onchange="loadData(event)">
+            </div>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 pb-32 md:pb-6" id="form-container">
@@ -91,9 +99,9 @@
 
             <!-- 1. 메인 설정 -->
             <div class="section-title">1. 테마 & 메인 헤더</div>
-            <div class="flex gap-4 mb-4">
-                <div class="flex-1 input-group mb-0"><label>캐릭터 1 컬러</label><input type="color" id="c1_color" value="#52525b" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
-                <div class="flex-1 input-group mb-0"><label>캐릭터 2 컬러</label><input type="color" id="c2_color" value="#a1a1aa" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="input-group mb-0"><label>캐릭터 1 컬러</label><input type="color" id="c1_color" value="#52525b" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+                <div class="input-group mb-0"><label>캐릭터 2 컬러</label><input type="color" id="c2_color" value="#a1a1aa" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
             </div>
             <div class="input-group"><label>소제목</label><input type="text" id="h_sub" value="여기에 소제목 또는 캐치 프레이즈를 입력하세요"></div>
             <div class="input-group"><label>제목 (일반 텍스트)</label><input type="text" id="h_t1" value="메인 제목을"></div>
@@ -169,6 +177,20 @@
                 <div class="w-24 input-group mb-0"><label>상단바 점 색상</label><input type="color" id="chat_top_dot_color" value="#a1a1aa" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
             </div>
             <div class="input-group"><label>채팅방 상단 날짜/설명</label><input type="text" id="chat_date" value="여기에 상황이나 날짜를 입력하세요"></div>
+            
+            <!-- 말풍선 색상 커스텀 추가 -->
+            <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3 mb-4">
+                <p class="text-[10px] text-zinc-500 font-normal mb-2">※ 말풍선 색상 커스텀</p>
+                <div class="flex gap-4 mb-2">
+                    <div class="flex-1 input-group mb-0"><label>캐릭터 1 (우측) 배경</label><input type="color" id="chat_c1_bg" value="#52525b" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+                    <div class="flex-1 input-group mb-0"><label>캐릭터 1 (우측) 텍스트</label><input type="color" id="chat_c1_text" value="#ffffff" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1 input-group mb-0"><label>캐릭터 2 (좌측) 배경</label><input type="color" id="chat_c2_bg" value="#ffffff" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+                    <div class="flex-1 input-group mb-0"><label>캐릭터 2 (좌측) 텍스트</label><input type="color" id="chat_c2_text" value="#3f3f46" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
+                </div>
+            </div>
+
             <div id="chats-container" class="bg-zinc-50/50 p-3 rounded-lg border border-zinc-200"></div>
 
             <!-- 6. 서사 (Phase) -->
@@ -244,13 +266,14 @@
                     <h3 class="font-bold text-zinc-900 mb-2 text-base">[이용 및 편집 관련 안내]</h3>
                     <ul class="list-disc pl-5 space-y-1.5 opacity-90">
                         <li><strong>최적화 환경:</strong> 본 틀은 PC 기준으로 제작되었습니다. 모바일 확인 시 환경에 따라 길이가 길어 보일 수 있으나, 모바일로 편집하더라도 PC에서는 정상적으로 깔끔하게 출력됩니다.<br><span class="text-zinc-500 text-xs mt-1 inline-block">※ 모바일 환경에서는 서사 옆 게이지 바가 보이지 않는 현상이 있으니 참고해 주세요.</span></li>
-                        <li><strong>배포 규정:</strong> 전체 공개 배포 금지 (2차 지인까지 링크 공유 허용) / 자작 발언 금지(아이디 지우기 X)</li>
+                        <li><strong>배포 규정:</strong> 전체 공개 배포 금지 (2차 지인까지 링크 공유 허용) / 자작 발언 금지(아이디 삭제 X)</li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="font-bold text-zinc-900 mb-2 text-base">[저장 방식 안내]</h3>
                     <ul class="list-disc pl-5 space-y-1.5 opacity-90">
                         <li><strong>지원 형식:</strong> HTML 코드 / HTML 파일 / 이미지</li>
+                        <li><strong>데이터 백업/복구:</strong> 작성 중인 데이터를 파일(.json)로 백업하여 저장해 두었다가 나중에 다시 불러올 수 있습니다.</li>
                         <li><strong>이미지 저장 시 주의:</strong> 기능 이용 시 프로필 아래 말풍선 부분이 살짝 깨질 수 있어 권장하지 않습니다. 이미지 저장을 원하실 경우 [새창] 버튼을 눌러 캡처 도구를 사용해 주세요.</li>
                         <li><strong>웹 페이지 구현:</strong> 타인에게 링크 형태로 공유하고 싶으신 경우, HTML 코드/파일을 다운로드하여 깃허브(GitHub) 등 웹사이트 생성 서비스에 코드를 삽입하여 사용해 주세요.</li>
                     </ul>
@@ -258,7 +281,7 @@
                 <div>
                     <h3 class="font-bold text-zinc-900 mb-2 text-base">[문의 및 피드백]</h3>
                     <ul class="list-disc pl-5 space-y-1.5 opacity-90">
-                        <li>기타 오류 제보는 트위터(@yuuhatsukoi)로 편하게 연락 부탁드립니다.</li>
+                        <li>기타 오류 제보는 트위터@yuuhatsukoi로 편하게 연락 부탁드립니다.</li>
                     </ul>
                 </div>
             </div>
@@ -339,11 +362,24 @@
             { img: "", fileName: "", tag: "#갤러리_태그", title: "여기에 제목을 입력하세요", desc: "여기에 사진에 대한 설명을 입력하세요." }
         ];
 
+        // 저장할 모든 input ID 목록 (백업/복구용)
+        const inputIds = [
+            'toggle_profile', 'toggle_comm', 'toggle_story', 'toggle_gallery', 'toggle_progress_bar',
+            'c1_color', 'c2_color',
+            'h_sub', 'h_t1', 'h_t2', 'h_t3', 'h_desc',
+            'c1_name', 'c1_sub', 'c1_img', 'c1_tags', 'c1_tags_color', 'c1_desc', 'c1_quote', 'c1_quote_color',
+            'c2_name', 'c2_sub', 'c2_img', 'c2_tags', 'c2_tags_color', 'c2_desc', 'c2_quote', 'c2_quote_color',
+            'call_main_sub', 'call_main_title', 'call_main_desc',
+            'chat_top_name', 'chat_top_dot_color', 'chat_date', 'chat_c1_bg', 'chat_c1_text', 'chat_c2_bg', 'chat_c2_text',
+            'story_main_sub', 'story_main_title', 'story_main_desc',
+            'gallery_main_sub', 'gallery_main_title', 'gallery_main_desc',
+            'footer', 'credit'
+        ];
+
         // --- 유틸리티 ---
         function val(id) { 
             const el = document.getElementById(id); 
             if (!el) return '';
-            // data-base64 속성이 있으면(파일 첨부 시) 그걸 우선 반환
             return el.dataset.base64 || el.value; 
         }
         function valCb(id) {
@@ -371,8 +407,8 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const targetInput = document.getElementById(targetId);
-                    targetInput.dataset.base64 = e.target.result; // 실제 데이터는 숨겨둠
-                    targetInput.value = `[첨부됨] ${file.name}`; // 화면엔 파일명만 표시
+                    targetInput.dataset.base64 = e.target.result;
+                    targetInput.value = `[첨부됨] ${file.name}`;
                     if (!isInitialLoad) debouncedUpdate();
                 };
                 reader.readAsDataURL(file);
@@ -385,14 +421,24 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     if(type === 'gallery') {
-                        galleries[idx].img = e.target.result; // 실제 데이터
-                        galleries[idx].fileName = `[첨부됨] ${file.name}`; // 화면 표시용
+                        galleries[idx].img = e.target.result;
+                        galleries[idx].fileName = `[첨부됨] ${file.name}`;
                     }
                     renderGalleries();
                     if (!isInitialLoad) debouncedUpdate();
                 };
                 reader.readAsDataURL(file);
             }
+        }
+
+        // --- 공통 컨트롤 버튼 (위/아래/삭제) ---
+        function getControlButtons(idx, arrLength, type) {
+            return `
+            <div class="absolute top-3 right-3 flex gap-1 z-10">
+                <button type="button" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 border border-zinc-200 rounded px-2 py-1 text-xs font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed" onclick="move${type}(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                <button type="button" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 border border-zinc-200 rounded px-2 py-1 text-xs font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed" onclick="move${type}(${idx}, 1)" ${idx === arrLength - 1 ? 'disabled' : ''}>▼</button>
+                <button type="button" class="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 rounded px-2 py-1 text-xs font-bold transition-colors ml-1" onclick="remove${type}(${idx})">삭제</button>
+            </div>`;
         }
 
         // --- 동적 렌더링 함수 (왼쪽 패널) ---
@@ -402,8 +448,8 @@
             calls.forEach((c, i) => {
                 container.innerHTML += `
                     <div class="item-box">
-                        <button type="button" class="delete-btn" onclick="removeCall(${i})">삭제</button>
-                        <div class="input-group mb-2">
+                        ${getControlButtons(i, calls.length, 'Call')}
+                        <div class="input-group mb-2 mt-4">
                             <label>방향</label>
                             <select onchange="calls[${i}].direction=this.value; debouncedUpdate()">
                                 <option value="2to1" ${c.direction==='2to1'?'selected':''}>캐릭터2(우) → 캐릭터1(좌)</option>
@@ -432,8 +478,8 @@
             chats.forEach((c, i) => {
                 container.innerHTML += `
                     <div class="item-box">
-                        <button type="button" class="delete-btn" onclick="removeChat(${i})">삭제</button>
-                        <div class="input-group mb-2">
+                        ${getControlButtons(i, chats.length, 'Chat')}
+                        <div class="input-group mb-2 mt-4">
                             <label>보낸 사람</label>
                             <select onchange="chats[${i}].sender=this.value; debouncedUpdate()">
                                 <option value="char1" ${c.sender==='char1'?'selected':''}>캐릭터 1 (오른쪽 노출)</option>
@@ -452,8 +498,8 @@
             phases.forEach((p, i) => {
                 container.innerHTML += `
                     <div class="item-box border-l-4 border-zinc-400">
-                        <button type="button" class="delete-btn" onclick="removePhase(${i})">삭제</button>
-                        <div class="font-bold text-zinc-800 mb-2">Phase ${i + 1}</div>
+                        ${getControlButtons(i, phases.length, 'Phase')}
+                        <div class="font-bold text-zinc-800 mb-2 mt-4">Phase ${i + 1}</div>
                         <div class="flex gap-4 mb-2">
                             <div class="flex-1 input-group mb-0"><label>테마 컬러</label><input type="color" value="${p.color}" oninput="phases[${i}].color=this.value; debouncedUpdate()" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
                             <div class="flex-1 input-group mb-0"><label>텍스트 컬러</label><input type="color" value="${p.textColor}" oninput="phases[${i}].textColor=this.value; debouncedUpdate()" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200"></div>
@@ -471,11 +517,11 @@
             const container = document.getElementById('galleries-container');
             container.innerHTML = '';
             galleries.forEach((g, i) => {
-                let displayVal = g.fileName || g.img; // 파일명이 있으면 파일명 표시, 없으면 URL 표시
+                let displayVal = g.fileName || g.img;
                 container.innerHTML += `
                     <div class="item-box border-l-4 border-zinc-400">
-                        <button type="button" class="delete-btn" onclick="removeGallery(${i})">삭제</button>
-                        <div class="font-bold text-zinc-800 mb-2">Gallery ${i + 1}</div>
+                        ${getControlButtons(i, galleries.length, 'Gallery')}
+                        <div class="font-bold text-zinc-800 mb-2 mt-4">Gallery ${i + 1}</div>
                         <div class="input-group">
                             <label>이미지 URL (또는 파일 첨부)</label>
                             <div class="flex gap-2">
@@ -494,12 +540,76 @@
 
         function addCall() { calls.push({ direction: "2to1", text: "새 호칭", type: "normal", desc: "" }); renderCalls(); }
         function removeCall(idx) { calls.splice(idx, 1); renderCalls(); }
+        function moveCall(idx, dir) { if(idx+dir < 0 || idx+dir >= calls.length) return; const t = calls[idx]; calls[idx] = calls[idx+dir]; calls[idx+dir] = t; renderCalls(); }
+
         function addChat() { chats.push({ sender: "char1", text: "새 메시지" }); renderChats(); }
         function removeChat(idx) { chats.splice(idx, 1); renderChats(); }
+        function moveChat(idx, dir) { if(idx+dir < 0 || idx+dir >= chats.length) return; const t = chats[idx]; chats[idx] = chats[idx+dir]; chats[idx+dir] = t; renderChats(); }
+
         function addPhase() { phases.push({ color: "#d4d4d8", textColor: "#52525b", sub: "Phase 새 소제목", title: "새 제목", desc: "새 내용", progressText: "" }); renderPhases(); }
         function removePhase(idx) { phases.splice(idx, 1); renderPhases(); }
+        function movePhase(idx, dir) { if(idx+dir < 0 || idx+dir >= phases.length) return; const t = phases[idx]; phases[idx] = phases[idx+dir]; phases[idx+dir] = t; renderPhases(); }
+
         function addGallery() { galleries.push({ img: "", fileName: "", tag: "#새_태그", title: "새 이미지", desc: "설명" }); renderGalleries(); }
         function removeGallery(idx) { galleries.splice(idx, 1); renderGalleries(); }
+        function moveGallery(idx, dir) { if(idx+dir < 0 || idx+dir >= galleries.length) return; const t = galleries[idx]; galleries[idx] = galleries[idx+dir]; galleries[idx+dir] = t; renderGalleries(); }
+
+        // --- 데이터 백업 및 복구 기능 ---
+        function saveData() {
+            const data = { inputs: {}, calls, chats, phases, galleries };
+            inputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.type === 'checkbox') data.inputs[id] = el.checked;
+                    else data.inputs[id] = { value: el.value, base64: el.dataset.base64 || '' };
+                }
+            });
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.download = 'pair_story_backup.json';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            showToast('📥 백업 파일이 저장되었습니다!');
+        }
+
+        function loadData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.inputs) {
+                        inputIds.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el && data.inputs[id] !== undefined) {
+                                if (el.type === 'checkbox') el.checked = data.inputs[id];
+                                else {
+                                    el.value = data.inputs[id].value || '';
+                                    if (data.inputs[id].base64) el.dataset.base64 = data.inputs[id].base64;
+                                    else el.removeAttribute('data-base64');
+                                }
+                            }
+                        });
+                    }
+                    if (data.calls) calls = data.calls;
+                    if (data.chats) chats = data.chats;
+                    if (data.phases) phases = data.phases;
+                    if (data.galleries) galleries = data.galleries;
+                    
+                    renderCalls();
+                    renderChats();
+                    renderPhases();
+                    renderGalleries();
+                    debouncedUpdate();
+                    showToast('📤 데이터를 성공적으로 불러왔습니다!');
+                } catch (err) {
+                    alert('잘못된 백업 파일입니다.');
+                }
+                event.target.value = ''; // Reset file input
+            };
+            reader.readAsText(file);
+        }
 
         // --- HTML 조각 생성 함수들 ---
         function getCallsData() {
@@ -524,18 +634,23 @@
 
         function getChatsHTML() {
             let chatHTML = '';
+            const c1Bg = val('chat_c1_bg') || '#52525b';
+            const c1Text = val('chat_c1_text') || '#ffffff';
+            const c2Bg = val('chat_c2_bg') || '#ffffff';
+            const c2Text = val('chat_c2_text') || '#3f3f46';
+
             chats.forEach((c, i) => {
                 let delay = (i * 0.8) + 0.2;
                 if(c.sender === 'char2') {
                     chatHTML += `
                     <div class="flex gap-2 items-end chat-bubble" style="animation-delay: ${delay}s;">
                         <img src="${val('c2_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="w-8 h-8 rounded-full object-cover shadow-sm shrink-0 bg-zinc-200">
-                        <div class="bg-white border border-zinc-200 text-zinc-700 text-sm px-4 py-2 rounded-2xl rounded-bl-none shadow-sm max-w-[75%]">${c.text.replace(/\n/g, '<br>')}</div>
+                        <div class="border border-zinc-200 text-sm px-4 py-2 rounded-2xl rounded-bl-none shadow-sm max-w-[75%]" style="background-color: ${c2Bg}; color: ${c2Text};">${c.text.replace(/\n/g, '<br>')}</div>
                     </div>`;
                 } else {
                     chatHTML += `
                     <div class="flex gap-2 items-end justify-end chat-bubble" style="animation-delay: ${delay}s;">
-                        <div class="bg-yeonji text-white text-sm px-4 py-2 rounded-2xl rounded-br-none shadow-sm max-w-[75%]">${c.text.replace(/\n/g, '<br>')}</div>
+                        <div class="text-sm px-4 py-2 rounded-2xl rounded-br-none shadow-sm max-w-[75%]" style="background-color: ${c1Bg}; color: ${c1Text};">${c.text.replace(/\n/g, '<br>')}</div>
                         <img src="${val('c1_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="w-8 h-8 rounded-full object-cover shadow-sm shrink-0 bg-zinc-200">
                     </div>`;
                 }
@@ -606,9 +721,8 @@
                         <div class="overflow-y-auto hide-scroll max-h-[120px] pr-2 pointer-events-auto"><p id="out_c1_desc" class="text-sm text-zinc-200 leading-relaxed font-light">${htmlVal('c1_desc')}</p></div>
                     </div>
                 </div>
-                <!-- 캡처 버그 방지를 위해 꼬리 부분(rotate-45)에서만 glass-panel을 빼고 bg-white로 대체 -->
                 <div id="out_c1_quote_box" class="glass-panel rounded-2xl p-5 border-l-4 relative ml-4 mt-2" style="border-left-color: ${val('c1_quote_color')};">
-                    <div class="absolute -top-3 left-6 w-6 h-6 bg-white border-t border-l border-zinc-200/80 rotate-45"></div>
+                    <div class="absolute -top-3 left-6 w-6 h-6 glass-panel rotate-45 border-r-0 border-b-0"></div>
                     <p id="out_c1_quote" class="text-zinc-700 text-sm font-medium leading-relaxed z-10 relative">${htmlVal('c1_quote')}</p>
                 </div>
             </div>
@@ -622,9 +736,8 @@
                         <div class="overflow-y-auto hide-scroll max-h-[120px] pr-2 pointer-events-auto"><p id="out_c2_desc" class="text-sm text-zinc-200 leading-relaxed font-light">${htmlVal('c2_desc')}</p></div>
                     </div>
                 </div>
-                <!-- 캡처 버그 방지를 위해 꼬리 부분(rotate-45)에서만 glass-panel을 빼고 bg-white로 대체 -->
                 <div id="out_c2_quote_box" class="glass-panel rounded-2xl p-5 border-l-4 relative ml-4 mt-2" style="border-left-color: ${val('c2_quote_color')};">
-                    <div class="absolute -top-3 left-6 w-6 h-6 bg-white border-t border-l border-zinc-200/80 rotate-45"></div>
+                    <div class="absolute -top-3 left-6 w-6 h-6 glass-panel rotate-45 border-r-0 border-b-0"></div>
                     <p id="out_c2_quote" class="text-zinc-700 text-sm font-medium leading-relaxed z-10 relative">${htmlVal('c2_quote')}</p>
                 </div>
             </div>
@@ -731,7 +844,7 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --c1: ${hexToRgb(val('c1_color'))}; --c2: ${hexToRgb(val('c2_color'))}; }
+        :root { --c1: ${hexToRgb(val('c1_color'))}; --c2: ${hexToRgb(val('c2_color'))}; --bg: #f4f4f5; }
         body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; scroll-behavior: smooth; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -744,7 +857,7 @@
         .chat-bubble { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; }
     </style>
     <script>
-        tailwind.config = { theme: { extend: { colors: { yeonji: 'rgb(var(--c1) / <alpha-value>)', dahee: 'rgb(var(--c2) / <alpha-value>)', paper: '#f4f4f5' } } } }
+        tailwind.config = { theme: { extend: { colors: { yeonji: 'rgb(var(--c1) / <alpha-value>)', dahee: 'rgb(var(--c2) / <alpha-value>)', paper: 'var(--bg)' } } } }
     <\/script>
 </head>
 <body class="bg-paper text-zinc-800 antialiased selection:bg-dahee selection:text-white relative overflow-x-hidden">
@@ -819,6 +932,7 @@
             // 1. CSS 변수(색상) 실시간 업데이트
             doc.documentElement.style.setProperty('--c1', hexToRgb(val('c1_color')));
             doc.documentElement.style.setProperty('--c2', hexToRgb(val('c2_color')));
+            doc.documentElement.style.setProperty('--bg', '#f4f4f5');
 
             // DOM 텍스트/HTML/속성 변경 헬퍼
             const setTxt = (id, v) => { const el = doc.getElementById(id); if(el) el.innerText = v; };
@@ -1008,7 +1122,7 @@
             // html-to-image 라이브러리 사용
             window.htmlToImage.toPng(target, {
                 pixelRatio: 2, // 2배수 고화질
-                backgroundColor: '#f4f4f5',
+                backgroundColor: '#f4f4f5', // 전체 배경색 반영 (고정값)
                 style: { transform: 'none' } // 깨짐 방지
             }).then(dataUrl => {
                 target.style.overflow = originalBodyOverflow; // 스크롤바 원상복구
