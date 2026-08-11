@@ -244,7 +244,7 @@
                     <h3 class="font-bold text-zinc-900 mb-2 text-base">[이용 및 편집 관련 안내]</h3>
                     <ul class="list-disc pl-5 space-y-1.5 opacity-90">
                         <li><strong>최적화 환경:</strong> 본 틀은 PC 기준으로 제작되었습니다. 모바일 확인 시 환경에 따라 길이가 길어 보일 수 있으나, 모바일로 편집하더라도 PC에서는 정상적으로 깔끔하게 출력됩니다.<br><span class="text-zinc-500 text-xs mt-1 inline-block">※ 모바일 환경에서는 서사 옆 게이지 바가 보이지 않는 현상이 있으니 참고해 주세요.</span></li>
-                        <li><strong>배포 규정:</strong> 전체 공개 배포 금지 (2차 지인까지 링크 공유 허용) / 자작 발언 금지(아이디 지우지 말아주세요.)</li>
+                        <li><strong>배포 규정:</strong> 전체 공개 배포 금지 (2차 지인까지 링크 공유 허용) / 자작 발언 금지(아이디 지우기 X)</li>
                     </ul>
                 </div>
                 <div>
@@ -606,8 +606,9 @@
                         <div class="overflow-y-auto hide-scroll max-h-[120px] pr-2 pointer-events-auto"><p id="out_c1_desc" class="text-sm text-zinc-200 leading-relaxed font-light">${htmlVal('c1_desc')}</p></div>
                     </div>
                 </div>
+                <!-- 캡처 버그 방지를 위해 꼬리 부분(rotate-45)에서만 glass-panel을 빼고 bg-white로 대체 -->
                 <div id="out_c1_quote_box" class="glass-panel rounded-2xl p-5 border-l-4 relative ml-4 mt-2" style="border-left-color: ${val('c1_quote_color')};">
-                    <div class="absolute -top-3 left-6 w-6 h-6 glass-panel rotate-45 border-r-0 border-b-0"></div>
+                    <div class="absolute -top-3 left-6 w-6 h-6 bg-white border-t border-l border-zinc-200/80 rotate-45"></div>
                     <p id="out_c1_quote" class="text-zinc-700 text-sm font-medium leading-relaxed z-10 relative">${htmlVal('c1_quote')}</p>
                 </div>
             </div>
@@ -621,8 +622,9 @@
                         <div class="overflow-y-auto hide-scroll max-h-[120px] pr-2 pointer-events-auto"><p id="out_c2_desc" class="text-sm text-zinc-200 leading-relaxed font-light">${htmlVal('c2_desc')}</p></div>
                     </div>
                 </div>
+                <!-- 캡처 버그 방지를 위해 꼬리 부분(rotate-45)에서만 glass-panel을 빼고 bg-white로 대체 -->
                 <div id="out_c2_quote_box" class="glass-panel rounded-2xl p-5 border-l-4 relative ml-4 mt-2" style="border-left-color: ${val('c2_quote_color')};">
-                    <div class="absolute -top-3 left-6 w-6 h-6 glass-panel rotate-45 border-r-0 border-b-0"></div>
+                    <div class="absolute -top-3 left-6 w-6 h-6 bg-white border-t border-l border-zinc-200/80 rotate-45"></div>
                     <p id="out_c2_quote" class="text-zinc-700 text-sm font-medium leading-relaxed z-10 relative">${htmlVal('c2_quote')}</p>
                 </div>
             </div>
@@ -764,7 +766,7 @@
     ${storyHTML}
     ${galleryHTML}
 
-    <footer class="bg-zinc-200/50 py-10 text-center flex flex-col items-center justify-center gap-2">
+    <footer class="py-10 text-center flex flex-col items-center justify-center gap-2">
         <p id="out_footer" class="text-xs text-zinc-500 font-medium tracking-widest uppercase">${val('footer')}</p>
         <p id="out_credit" class="text-[10px] text-zinc-400 font-light tracking-wide">${htmlVal('credit')}</p>
         <p class="text-[9px] text-zinc-300 font-light mt-4 tracking-widest">@yuuhatsukoi</p>
