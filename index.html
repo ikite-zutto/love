@@ -177,6 +177,11 @@
                 <button type="button" onclick="addPhase()" class="btn-outline">+ 서사 추가</button>
             </div>
             
+            <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3 mb-4 flex justify-between items-center">
+                <span class="text-sm font-semibold text-zinc-700">서사 옆 게이지 바 표시</span>
+                <input type="checkbox" id="toggle_progress_bar" checked onchange="debouncedUpdate()" class="toggle-checkbox">
+            </div>
+
             <div class="flex gap-4 mb-4">
                 <div class="flex-1 input-group mb-0"><label>서사 메인 소제목</label><input type="text" id="story_main_sub" value="Connection"></div>
                 <div class="flex-1 input-group mb-0"><label>서사 메인 제목</label><input type="text" id="story_main_title" value="흐르는 시간 속의 기록"></div>
@@ -239,7 +244,7 @@
                     <h3 class="font-bold text-zinc-900 mb-2 text-base">[이용 및 편집 관련 안내]</h3>
                     <ul class="list-disc pl-5 space-y-1.5 opacity-90">
                         <li><strong>최적화 환경:</strong> 본 틀은 PC 기준으로 제작되었습니다. 모바일 확인 시 환경에 따라 길이가 길어 보일 수 있으나, 모바일로 편집하더라도 PC에서는 정상적으로 깔끔하게 출력됩니다.<br><span class="text-zinc-500 text-xs mt-1 inline-block">※ 모바일 환경에서는 서사 옆 게이지 바가 보이지 않는 현상이 있으니 참고해 주세요.</span></li>
-                        <li><strong>배포 규정:</strong> 전체 공개 배포 금지 (2차 지인까지 링크 공유 허용) / 자작 발언 금지</li>
+                        <li><strong>배포 규정:</strong> 전체 공개 배포 금지 (2차 지인까지 링크 공유 허용) / 자작 발언 금지(아이디 지우지 말아주세요.)</li>
                     </ul>
                 </div>
                 <div>
@@ -456,7 +461,7 @@
                         <div class="input-group"><label>소제목</label><input type="text" value="${escapeHTML(p.sub)}" oninput="phases[${i}].sub=this.value; debouncedUpdate()"></div>
                         <div class="input-group"><label>제목</label><input type="text" value="${escapeHTML(p.title)}" oninput="phases[${i}].title=this.value; debouncedUpdate()"></div>
                         <div class="input-group"><label>내용</label><textarea oninput="phases[${i}].desc=this.value; debouncedUpdate()">${p.desc}</textarea></div>
-                        <div class="input-group mb-0"><label>스크롤 하단 문구 (예: (진실))</label><input type="text" value="${escapeHTML(p.progressText)}" oninput="phases[${i}].progressText=this.value; debouncedUpdate()"></div>
+                        <div class="input-group mb-0"><label>게이지 바 도달 시 하단 문구 (게이지 바 숨김 시 비워두세요)</label><input type="text" value="${escapeHTML(p.progressText)}" oninput="phases[${i}].progressText=this.value; debouncedUpdate()"></div>
                     </div>`;
             });
             if (!isInitialLoad) debouncedUpdate();
@@ -583,6 +588,7 @@
             const showComm = valCb('toggle_comm');
             const showStory = valCb('toggle_story');
             const showGallery = valCb('toggle_gallery');
+            const showProgressBar = valCb('toggle_progress_bar');
 
             // 내보내기 상태이고 해당 토글이 꺼져있으면 코드를 아예 생성하지 않음
             // 내보내기가 아니면(미리보기용) 코드를 생성하되 display:none 처리
@@ -675,16 +681,20 @@
         </div>
     </section>`;
 
-            const storyStyle = (!isExport && !showStory) ? 'style="display: none;"' : '';
-            const storyHTML = (isExport && !showStory) ? '' : `
-    <section id="story" class="max-w-5xl mx-auto px-6 py-24 border-t border-zinc-200/60 relative flex" ${storyStyle}>
-        <div class="hidden md:flex flex-col items-center w-24 mr-8 sticky top-32 h-[75vh]">
+            const progressStyle = (!isExport && !showProgressBar) ? 'style="display: none;"' : '';
+            const progressHTML = (isExport && !showProgressBar) ? '' : `
+        <div id="out_story_progress_container" class="hidden md:flex flex-col items-center w-24 mr-8 sticky top-32 h-[75vh]" ${progressStyle}>
             <span id="out_story_main_sub" class="text-[10px] font-bold text-zinc-400 tracking-widest mb-2 uppercase">${val('story_main_sub')}</span>
             <div class="relative w-3 flex-1 bg-zinc-200 rounded-full overflow-hidden">
                 <div id="trust-bar" class="absolute bottom-0 w-full bg-gradient-to-t from-yeonji to-dahee rounded-full transition-all duration-300" style="height: 0%;"></div>
             </div>
             <span id="trust-text" class="text-xs font-bold text-zinc-600 mt-3 text-center transition-all">0%</span>
-        </div>
+        </div>`;
+
+            const storyStyle = (!isExport && !showStory) ? 'style="display: none;"' : '';
+            const storyHTML = (isExport && !showStory) ? '' : `
+    <section id="story" class="max-w-5xl mx-auto px-6 py-24 border-t border-zinc-200/60 relative flex" ${storyStyle}>
+        ${progressHTML}
         <div class="flex-1">
             <div class="text-center mb-16">
                 <h3 id="out_story_main_title" class="text-3xl font-black text-zinc-800 mb-4">${val('story_main_title')}</h3>
@@ -757,6 +767,7 @@
     <footer class="bg-zinc-200/50 py-10 text-center flex flex-col items-center justify-center gap-2">
         <p id="out_footer" class="text-xs text-zinc-500 font-medium tracking-widest uppercase">${val('footer')}</p>
         <p id="out_credit" class="text-[10px] text-zinc-400 font-light tracking-wide">${htmlVal('credit')}</p>
+        <p class="text-[9px] text-zinc-300 font-light mt-4 tracking-widest">@yuuhatsukoi</p>
     </footer>
 
     <script>
@@ -801,6 +812,7 @@
             setDisplay('communication', valCb('toggle_comm'));
             setDisplay('story', valCb('toggle_story'));
             setDisplay('gallery', valCb('toggle_gallery'));
+            setDisplay('out_story_progress_container', valCb('toggle_progress_bar'));
 
             // 1. CSS 변수(색상) 실시간 업데이트
             doc.documentElement.style.setProperty('--c1', hexToRgb(val('c1_color')));
