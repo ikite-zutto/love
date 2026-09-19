@@ -109,6 +109,21 @@
             <div class="input-group"><label>제목 (끝맺음)</label><input type="text" id="h_t3" value=" 입력하세요."></div>
             <div class="input-group"><label>메인 설명</label><textarea id="h_desc">여기에 메인 설명을 입력하세요.&#13;&#10;두 줄 이상 입력할 수 있습니다.</textarea></div>
 
+            <!-- 프로필 그라데이션 커스텀 추가 -->
+            <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3 mb-4">
+                <p class="text-[10px] text-zinc-500 font-normal mb-2">※ 프로필 사진 하단 그라데이션 설정</p>
+                <div class="flex gap-4">
+                    <div class="flex-1 input-group mb-0">
+                        <label>그라데이션 색상</label>
+                        <input type="color" id="profile_grad_color" value="#18181b" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200">
+                    </div>
+                    <div class="flex-1 input-group mb-0">
+                        <label>투명도 (0~100)</label>
+                        <input type="range" id="profile_grad_opacity" min="0" max="100" value="95" class="w-full mt-2" oninput="debouncedUpdate()">
+                    </div>
+                </div>
+            </div>
+
             <!-- 2. 캐릭터 1 -->
             <div class="section-title">2. 캐릭터 1 (왼쪽)</div>
             <div class="input-group"><label>이름</label><input type="text" id="c1_name" value="캐릭터 1"></div>
@@ -224,6 +239,21 @@
                 <div class="flex-1 input-group mb-0"><label>갤러리 메인 제목</label><input type="text" id="gallery_main_title" value="기억의 조각들"></div>
             </div>
             <div class="input-group"><label>갤러리 메인 부제목 (설명)</label><input type="text" id="gallery_main_desc" value="부제목을 입력하세요."></div>
+
+            <!-- 갤러리 그라데이션 커스텀 추가 -->
+            <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-3 mb-4">
+                <p class="text-[10px] text-zinc-500 font-normal mb-2">※ 갤러리 사진 하단 그라데이션 설정</p>
+                <div class="flex gap-4">
+                    <div class="flex-1 input-group mb-0">
+                        <label>그라데이션 색상</label>
+                        <input type="color" id="gallery_grad_color" value="#18181b" class="h-10 p-1 cursor-pointer w-full rounded-md border-zinc-200">
+                    </div>
+                    <div class="flex-1 input-group mb-0">
+                        <label>투명도 (0~100)</label>
+                        <input type="range" id="gallery_grad_opacity" min="0" max="100" value="95" class="w-full mt-2" oninput="debouncedUpdate()">
+                    </div>
+                </div>
+            </div>
 
             <div id="galleries-container" class="bg-zinc-50/50 p-3 rounded-lg border border-zinc-200"></div>
 
@@ -367,12 +397,14 @@
             'toggle_profile', 'toggle_comm', 'toggle_story', 'toggle_gallery', 'toggle_progress_bar',
             'c1_color', 'c2_color',
             'h_sub', 'h_t1', 'h_t2', 'h_t3', 'h_desc',
+            'profile_grad_color', 'profile_grad_opacity',
             'c1_name', 'c1_sub', 'c1_img', 'c1_tags', 'c1_tags_color', 'c1_desc', 'c1_quote', 'c1_quote_color',
             'c2_name', 'c2_sub', 'c2_img', 'c2_tags', 'c2_tags_color', 'c2_desc', 'c2_quote', 'c2_quote_color',
             'call_main_sub', 'call_main_title', 'call_main_desc',
             'chat_top_name', 'chat_top_dot_color', 'chat_date', 'chat_c1_bg', 'chat_c1_text', 'chat_c2_bg', 'chat_c2_text',
             'story_main_sub', 'story_main_title', 'story_main_desc',
             'gallery_main_sub', 'gallery_main_title', 'gallery_main_desc',
+            'gallery_grad_color', 'gallery_grad_opacity',
             'footer', 'credit'
         ];
 
@@ -393,6 +425,15 @@
             return `${parseInt(hex.slice(0, 2), 16)} ${parseInt(hex.slice(2, 4), 16)} ${parseInt(hex.slice(4, 6), 16)}`;
         }
         const escapeHTML = str => (str || '').replace(/"/g, '&quot;');
+
+        // 그라데이션 스타일 생성 유틸리티
+        function getGradientStyle(colorHex, opacityStr) {
+            const hex = colorHex || '#18181b';
+            const rgb = hexToRgb(hex).split(' ').join(', ');
+            const alpha = (parseInt(opacityStr !== undefined ? opacityStr : 95) / 100).toFixed(2);
+            const midAlpha = (alpha * 0.42).toFixed(2); // 자연스러운 그라데이션을 위한 중간 투명도
+            return `background: linear-gradient(to top, rgba(${rgb}, ${alpha}), rgba(${rgb}, ${midAlpha}), transparent);`;
+        }
 
         // 서사 텍스트 파싱 (*텍스트* -> 강조)
         function parseStoryDescText(text, color) {
@@ -677,6 +718,7 @@
 
         function getGalleryHTML() {
             let galleryHTML = '';
+            const gradStyle = getGradientStyle(val('gallery_grad_color'), val('gallery_grad_opacity'));
             galleries.forEach((g, i) => {
                 let mt = (i % 2 !== 0) ? 'md:mt-12' : '';
                 let htmlDesc = (g.desc || '').replace(/\n/g, '<br>');
@@ -684,7 +726,7 @@
                 <div class="relative group rounded-[2.5rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 aspect-[4/5] bg-zinc-200 border border-zinc-200/50 ${mt}">
                     <img src="${g.img || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <!-- [수정됨] 얼굴을 가리지 않게 그림자 높이를 h-2/3 로 낮추고 바닥에 고정함 -->
-                    <div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-zinc-900/95 via-zinc-900/40 to-transparent pointer-events-none"></div>
+                    <div class="absolute inset-x-0 bottom-0 h-2/3 pointer-events-none" style="${gradStyle}"></div>
                     <div class="absolute bottom-0 left-0 w-full p-8 text-white flex flex-col justify-end pointer-events-none">
                         <span class="text-zinc-400 text-xs font-bold tracking-widest uppercase mb-1">${g.tag}</span>
                         <h4 class="text-2xl font-bold mb-2 tracking-tight">${g.title}</h4>
@@ -716,7 +758,7 @@
                 <div class="relative w-full aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl group border border-zinc-200/50 bg-zinc-200">
                     <img id="out_c1_img" src="${val('c1_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <!-- [수정됨] 얼굴을 가리지 않게 그림자 높이를 h-2/3 로 낮추고 바닥에 고정함 -->
-                    <div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-zinc-900/95 via-zinc-900/40 to-transparent pointer-events-none"></div>
+                    <div id="out_c1_grad" class="absolute inset-x-0 bottom-0 h-2/3 pointer-events-none" style="${getGradientStyle(val('profile_grad_color'), val('profile_grad_opacity'))}"></div>
                     <div class="absolute bottom-0 left-0 w-full p-8 text-white flex flex-col justify-end h-1/2 pointer-events-none">
                         <div class="flex items-end gap-3 mb-1"><h2 id="out_c1_name" class="text-4xl font-bold tracking-tight">${val('c1_name')}</h2><span id="out_c1_sub" class="text-2xl font-light opacity-90">${val('c1_sub')}</span></div>
                         <p id="out_c1_tags" class="font-medium mb-4 text-sm tracking-wide" style="color: ${val('c1_tags_color')};">${val('c1_tags')}</p>
@@ -732,7 +774,7 @@
                 <div class="relative w-full aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl group border border-zinc-200/50 bg-zinc-200">
                     <img id="out_c2_img" src="${val('c2_img') || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <!-- [수정됨] 얼굴을 가리지 않게 그림자 높이를 h-2/3 로 낮추고 바닥에 고정함 -->
-                    <div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-zinc-900/95 via-zinc-900/40 to-transparent pointer-events-none"></div>
+                    <div id="out_c2_grad" class="absolute inset-x-0 bottom-0 h-2/3 pointer-events-none" style="${getGradientStyle(val('profile_grad_color'), val('profile_grad_opacity'))}"></div>
                     <div class="absolute bottom-0 left-0 w-full p-8 text-white flex flex-col justify-end h-1/2 pointer-events-none">
                         <div class="flex items-end gap-3 mb-1"><h2 id="out_c2_name" class="text-4xl font-bold tracking-tight">${val('c2_name')}</h2><span id="out_c2_sub" class="text-2xl font-light opacity-90">${val('c2_sub')}</span></div>
                         <p id="out_c2_tags" class="font-medium mb-4 text-sm tracking-wide" style="color: ${val('c2_tags_color')};">${val('c2_tags')}</p>
@@ -948,6 +990,13 @@
             setTxt('out_h_t2', val('h_t2'));
             setTxt('out_h_t3', val('h_t3'));
             setHtml('out_h_desc', htmlVal('h_desc'));
+
+            // 프로필 그라데이션 업데이트
+            const profileGradBg = getGradientStyle(val('profile_grad_color'), val('profile_grad_opacity')).replace('background: ', '').replace(';', '');
+            const c1Grad = doc.getElementById('out_c1_grad');
+            if(c1Grad) c1Grad.style.background = profileGradBg;
+            const c2Grad = doc.getElementById('out_c2_grad');
+            if(c2Grad) c2Grad.style.background = profileGradBg;
 
             // 3. 캐릭터 1
             setSrc('out_c1_img', val('c1_img'));
